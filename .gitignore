@@ -1,0 +1,43 @@
+# Core LaTeX auxiliary files
+*.aux
+*.log
+*.out
+*.toc
+*.lot
+*.lof
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.synctex(busy)
+*.pdfsync
+
+# Bibliography auxiliary files (BibTeX / Biber)
+*.bbl
+*.blg
+*.bcf
+*.run.xml
+
+# Index auxiliary files
+*.idx
+*.ind
+*.ilg
+
+# Glossary auxiliary files
+*.glg
+*.glo
+*.gls
+*.ist
+
+# PDF builds (optional - usually you want to ignore the generated PDF)
+# Remove the '#' below if you want to ignore PDFs
+# *.pdf
+
+# Editor specific files (VS Code, TeXShop, etc.)
+.vscode/
+*.nav
+*.snm
+*.vrb
+
+# Operating System files
+.DS_Store
+Thumbs.db

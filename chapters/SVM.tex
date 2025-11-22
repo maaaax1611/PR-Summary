@@ -1,0 +1,65 @@
+% Datei: chapters/07_svm.tex
+
+\section{Support Vector Machines (SVM)}
+Just like other classifiers (Neural Nets, Nearest Neighbor, etc.), the goal of SVMs is to draw a linear line (decision boundary) to separate classes. But instead of drawing any sufficient line to separate the classes, SVMs aim to find a unique decision boundary that \textbf{maximizes the margin (distance)} between each class. The solution to this problem is unique and depends only on the features that are close to the decision boundary.
+ 
+ \subsection{Hard Margin Problems}
+The hard margin SVM needs linearly seperable classes.
+\begin{figure}[h!]
+    \centering
+    % Achte darauf, dass der Pfad stimmt (images/...)
+    \includegraphics[width=0.6\textwidth]{images/SVM_hard.png}
+    \caption{Hard margin SVM}
+    \label{fig:SVM_hard}
+\end{figure}
+Lets assume there is an affine function defined as:
+\begin{equation}
+    f(x) = \vec{\alpha}^T x + \alpha_0
+\end{equation}
+Where $\vec{\alpha}$ is the normal vector to the decision boundary and $\alpha_0$ is some sort of bias.
+For any point $x$ on the decision boundary, it holds that $f(x) = 0$.\\
+There are three major points we need to think about to end up with a nice optimization problem:
+
+\textbf{1. Introduce margin constraints:}\\
+We need to ensure that all points are classified correctly and therefore lie outside the margin. Therefore, we introduce the following constraints:
+\begin{itemize}
+    \item For points of class $+1$: $f(x) \geq 1$
+    \item For points of class $-1$: $f(x) \leq -1$ 
+\end{itemize}
+This means that for a sample point $x_i$ with the label $y_i = +1$, it holds that $f(x_i) \geq 1$. Similarly, for a sample point $x_j$ with the label $y_j = -1$, it holds that $f(x_j) \leq -1$.
+These two constraints can be combined into one single constraint ($y \in \{+1, -1\}$):
+\begin{equation} 
+    y_i f(x_i) - 1= y_i (\vec{\alpha}^T x_i + \alpha_0) - 1 \geq 0 \quad \forall i
+\end{equation}
+\textbf{2. Define the margin:}\\
+The margin is defined as the distance between the decision boundary and the closest points from either class.
+To compute the margin width, we take a sample from each class that lies exactly on the margin (i.e., satisfies $y_i f(x_i) - 1= 0 \quad \forall i$) and subtract them from each other.
+When we project the resulting vector onto tho normalized normal vector of the hyperplane, we get the margin width:
+\begin{equation}
+    \text{width} = \frac{\vec{\alpha}}{\|\vec{\alpha}\|_2} \cdot (\vec{x}_{y=+1} - \vec{x}_{y=-1})
+\end{equation}
+Now we multiply this out:
+\begin{equation}
+    \text{width} = \frac{1}{\|\vec{\alpha}\|_2} (\vec{\alpha}^T \vec{x}_{y=+1} - \vec{\alpha}^T \vec{x}_{y=-1})
+\end{equation}
+We know from our margin constraints defined in step 1 that for support vectors (points on the margin), the inequality becomes an equality:
+\begin{itemize}
+    \item For the positive support vector $\vec{x}_{y=+1}$: 
+    $$ \vec{\alpha}^T \vec{x}_{y=+1} + \alpha_0 = 1 \quad \Rightarrow \quad \vec{\alpha}^T \vec{x}_{y=+1} = 1 - \alpha_0 $$
+    \item For the negative support vector $\vec{x}_{y=-1}$: 
+    $$ \vec{\alpha}^T \vec{x}_{y=-1} + \alpha_0 = -1 \quad \Rightarrow \quad \vec{\alpha}^T \vec{x}_{y=-1} = -1 - \alpha_0 $$
+\end{itemize}
+Substituting these expressions back into the width equation:
+\begin{align}
+    \text{width} &= \frac{1}{\|\vec{\alpha}\|_2} ((1 - \alpha_0) - (-1 - \alpha_0)) \\
+    &= \frac{1}{\|\vec{\alpha}\|_2} (1 - \alpha_0 + 1 + \alpha_0) \\
+    &= \frac{2}{\|\vec{\alpha}\|_2}
+\end{align}
+\textbf{3. Minimize the norm:}\\
+Since we want to \textbf{maximize} the margin width $\frac{2}{\|\vec{\alpha}\|_2}$, this is mathematically equivalent to \textbf{minimizing} the length of the normal vector $\|\vec{\alpha}\|_2$.
+For mathematical convenience (to make derivatives easier later), we minimize the squared norm:
+\begin{summarybox}{Primal Optimization Problem (Hard Margin)}
+    \begin{equation*}
+        \text{minimize } \quad \frac{1}{2} \|\vec{\alpha}\|_2^2 \quad \text{subject to } \quad y_i (\vec{\alpha}^T x_i + \alpha_0) \geq 1 \quad \forall i
+    \end{equation*}
+\end{summarybox}
