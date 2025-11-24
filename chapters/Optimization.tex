@@ -1,0 +1,84 @@
+\section{Optimization}
+\subsection{Convexity}
+A function \( f: \mathbb{R}^n \rightarrow \mathbb{R} \) is called \textbf{convex} if for all \( x, y \in \mathbb{R}^n \) and for all \( \theta \in [0, 1] \), the following condition holds:
+
+\begin{summarybox}{Definition: Convexity \& Concavity}
+    A function $f : \mathbb{R}^d \rightarrow \mathbb{R}$ is \textbf{convex} if the domain $\operatorname{dom}(f)$ of $f$ is a convex set and if $\forall \mathbf{x}, \mathbf{y} \in \operatorname{dom}(f)$, and $\theta$ with $0 \leq \theta \leq 1$, we have:
+    \begin{equation}
+        f(\theta\mathbf{x} + (1-\theta)\mathbf{y}) \leq \theta f(\mathbf{x}) + (1-\theta)f(\mathbf{y})
+    \end{equation}
+    
+    A function $f : \mathbb{R}^d \rightarrow \mathbb{R}$ is \textbf{concave} if $-f$ is convex.
+\end{summarybox}
+
+This means that the line segment connecting any two points on the graph of the function lies \textbf{above or on the graph itself}. Convex functions have the property that any local minimum is also a global minimum, which is particularly useful in optimization problems.
+
+\subsection{Unconstrained Optimization}
+In unconstrained optimization, we aim to find the minimum (or maximum) of a function $f : \mathbb{R}^d \rightarrow \mathbb{R}$ without any restrictions on the variable values.
+Typically we assume that the function \( f \) is twice differentiable and convex.
+The unconstrained otpimization is the solution to the minimization problem
+\begin{equation}
+    \vec{x}^* = \arg \min_{\vec{x}} f(\vec{x})
+\end{equation}
+Where $\vec{x}$ denotes the optimal point.
+For this family of functions, a necessary and sufficient condition for a minimum are the zero-crossings of the gradient:
+\begin{equation}
+    \nabla f(\vec{x}^*) = 0
+\end{equation}
+Most of the time, we cannot find a closed-form solution to this equation.
+So we need to follow an iterative approach:
+\begin{align*}
+    \text{initialization} & \qquad \mathbf{x}^{(0)} \\
+    \text{iteration step} & \qquad \mathbf{x}^{(k+1)} = g(\mathbf{x}^{(k)})
+\end{align*}
+
+where $g : \mathbb{R}^d \rightarrow \mathbb{R}^d$ is the update function.
+
+The iterations terminate, if
+\[
+\|\mathbf{x}^{(k+1)} - \mathbf{x}^{(k)}\| < \varepsilon,
+\]
+for some small threshold \(\varepsilon > 0\). This means that there is not furher significant change in the variable values, indicating convergence to a solution.
+Some common iterative optimization methods will be discussed below.
+
+\subsection{Descent Methods}
+The basic idea of descent methods is to iteratively take small steps $\Delta \vec{x}^{(k)}$ in the direction of \textbf{steepest descent} (i.e., the negative gradient) to minimize the function value:
+\begin{equation}
+    \vec{x}^{(k+1)} = \vec{x}^{(k)} + t^{(k)} \Delta \vec{x}^{(k)}
+\end{equation}
+where
+\begin{align}
+    \Delta\vec{x}^{(k)} &\in \mathbb{R}^d : && \text{is the search direction in the k-th iteration} \\
+    t^{(k)} &\in \mathbb{R} : && \text{denotes the step length in the k-th iteration}
+\end{align}
+and where we expect:
+\begin{equation}
+    f(\vec{x}^{(k+1)}) < f(\vec{x}^{(k)}) \quad \text{except} \quad \vec{x}^{(k+1)} = \vec{x}^{(k)} = \vec{x}^*
+\end{equation}
+It is important to choose an appropriate step size \( t^{(k)} \) to ensure convergence and avoid overshooting the minimum.
+If $t$ is too large, we might overshoot the minimum, while if it is too small, convergence can be very slow or get stuck in local minima.
+\begin{figure}[!ht]
+    \centering
+    % Achte darauf, dass der Pfad stimmt (images/...)
+    \includegraphics[width=\textwidth]{images/learning_rate.png}
+    \caption{Learning Rate Illustration}
+    \label{fig:learning_rate}
+\end{figure}
+The procedure to find a suitable step size is called \textbf{line search}.
+You can basically see this as a function $F(\vec{x}^{(k)}) + t^{(k)} \Delta \vec{x}^{(k)}$ where $\Delta \vec{x}^{(k)}$ and $\vec{x}^{(k)}$ are fixed and we only vary $t^{(k)}$ to find the minimum of this 1D function.
+\begin{figure}[!ht]
+    \centering
+    % Achte darauf, dass der Pfad stimmt (images/...)
+    \includegraphics[width=0.6\textwidth]{images/BacktrackingLineSearch.png}
+    \caption{Backtracking line search}
+    \label{fig:backtracking_line_search}
+\end{figure}
+A common method for line search is \textbf{backtracking line search (Armijo-Goldstein Algorithm)}, which starts with an initial step size and iteratively reduces it until a sufficient decrease in the function value is observed.
+
+\subsubsection{Gradient Descent}
+A natutral choice for the search direction is the negative gradient of the function at the current point
+
+\subsubsection{Newtons Method}
+
+
+\newpage

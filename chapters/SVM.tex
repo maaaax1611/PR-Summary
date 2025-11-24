@@ -1,11 +1,9 @@
-% Datei: chapters/07_svm.tex
-
 \section{Support Vector Machines (SVM)}
 Just like other classifiers (Neural Nets, Nearest Neighbor, etc.), the goal of SVMs is to draw a linear line (decision boundary) to separate classes. But instead of drawing any sufficient line to separate the classes, SVMs aim to find a unique decision boundary that \textbf{maximizes the margin (distance)} between each class. The solution to this problem is unique and depends only on the features that are close to the decision boundary.
  
  \subsection{Hard Margin Problems}
 The hard margin SVM needs linearly seperable classes.
-\begin{figure}[h!]
+\begin{figure}[!ht]
     \centering
     % Achte darauf, dass der Pfad stimmt (images/...)
     \includegraphics[width=0.6\textwidth]{images/SVM_hard.png}
@@ -63,3 +61,32 @@ For mathematical convenience (to make derivatives easier later), we minimize the
         \text{minimize } \quad \frac{1}{2} \|\vec{\alpha}\|_2^2 \quad \text{subject to } \quad y_i (\vec{\alpha}^T x_i + \alpha_0) \geq 1 \quad \forall i
     \end{equation*}
 \end{summarybox}
+
+\subsection{Soft Margin Problems}
+In real world applications, data is often not perfectly linearly separable.
+The Soft Margin SVM relaxes the hard margin constraints by allowing some points to violate the margin or even be misclassified.
+
+\begin{figure}[!ht]
+    \centering
+    \includegraphics[width=0.6\textwidth]{images/SVM_soft.png}
+    \caption{Soft margin SVM}
+    \label{fig:SVM_soft}
+\end{figure}
+
+Therefore, we introduce slack variables $\xi_i \geq 0$ for each training sample $x_i$, which measure the degree of misclassification:
+\begin{itemize}
+    \item $\xi_i = 0$: point is correctly classified and outside or on the margin
+    \item $0 < \xi_i \leq 1$: point is inside the margin but still correctly classified
+    \item $\xi_i > 1$: point is misclassified
+\end{itemize}
+The margin constraints are now relaxed to:
+\begin{equation}
+    y_i (\vec{\alpha}^T x_i + \alpha_0) \geq 1 - \xi_i \quad \forall i
+\end{equation}
+The primal optimization problem becomes:
+\begin{summarybox}{Primal Optimization Problem (Soft Margin)}
+    \begin{equation*}
+        \text{minimize } \quad \frac{1}{2} \|\vec{\alpha}\|_2^2 + \mu \sum_{i=1}^{n} \xi_i \quad \text{subject to } \quad -(y_i (\vec{\alpha}^T x_i + \alpha_0)-1 + \xi_i) \leq 0, \quad -\xi_i \leq 0 \quad \forall i
+    \end{equation*}
+\end{summarybox}
+where $\mu > 0$ is a hyperparameter that controls the trade-off between maximizing the margin and minimizing the classification error.
