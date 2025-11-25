@@ -55,6 +55,7 @@ and where we expect:
 \begin{equation}
     f(\vec{x}^{(k+1)}) < f(\vec{x}^{(k)}) \quad \text{except} \quad \vec{x}^{(k+1)} = \vec{x}^{(k)} = \vec{x}^*
 \end{equation}
+\textbf{Finding a suitable step size}\\
 It is important to choose an appropriate step size \( t^{(k)} \) to ensure convergence and avoid overshooting the minimum.
 If $t$ is too large, we might overshoot the minimum, while if it is too small, convergence can be very slow or get stuck in local minima.
 \begin{figure}[!ht]
@@ -75,10 +76,141 @@ You can basically see this as a function $F(\vec{x}^{(k)}) + t^{(k)} \Delta \vec
 \end{figure}
 A common method for line search is \textbf{backtracking line search (Armijo-Goldstein Algorithm)}, which starts with an initial step size and iteratively reduces it until a sufficient decrease in the function value is observed.
 
-\subsubsection{Gradient Descent}
-A natutral choice for the search direction is the negative gradient of the function at the current point
+\subsection{Gradient Descent}
+A natutral choice for the search direction is the negative gradient of the function at the current point:
+\begin{equation}
+    x^{(k+1)} = x^{(k)} - t^{(k)} \nabla f(x^{(k)})
+\end{equation}
+You can use either a fixed step size or perform a line search to determine the optimal step size at each iteration.\\
 
-\subsubsection{Newtons Method}
+\textbf{Algorithm:}\\
+\textbf{Input:} function $f$, initial estimate $\mathbf{x}^{(0)}$ \\
+\textbf{initialize:} $k := 0$ \\
+\textbf{repeat}
+\begin{enumerate}
+    \item Set descent direction: $\Delta\mathbf{x}^{(k)} = - \nabla f(\mathbf{x}^{(k)})$
+    \item Line search (1-D optimization):
+    \[
+    t^{(k)} = \arg\min_{t \ge 0} f(\mathbf{x}^{(k)} + t \cdot \Delta\mathbf{x}^{(k)})
+    \]
+    \item Update:
+    \[
+    \mathbf{x}^{(k+1)} = \mathbf{x}^{(k)} + t^{(k)} \Delta\mathbf{x}^{(k)}
+    \]
+    \item $k := k + 1$
+\end{enumerate}
+\textbf{until} $\|\mathbf{x}^{(k)} - \mathbf{x}^{(k-1)}\|_2 < \varepsilon$ \\
+\textbf{Output:} $\mathbf{x}^{(k)}$
+
+
+\subsection{Normalized Steepest Descent}
+In normalilzed steepest descent, the search direction is given by the following optimization problem:
+\begin{equation}
+    \Delta \vec{x} = \arg\min_{u} \nabla f(\vec{x})^T \vec{u} \quad \text{s.t.} \quad \|\vec{u}\| = 1
+\end{equation}
+This means that we compute the inner product of the gradient and a unit vector $\vec{u}$ (project the gradient onto $\vec{u}$) and choose the direction with the steepest descent.\\
+
+\textbf{Algorithm:}\\
+\textbf{Input:} function $f$, initial estimate $\mathbf{x}^{(0)}$, norm $\|\cdot\|$ \\
+\textbf{initialize:} $k := 0$ \\
+\textbf{repeat}
+\begin{enumerate}
+    \item Compute highest descent direction:
+    \[
+    \Delta\mathbf{x}^{(k)} = \arg\min_{\mathbf{u}} \{ \nabla f(\mathbf{x}^{(k)})^T \mathbf{u} ; \|\mathbf{u}\| = 1 \}
+    \]
+    \item Line search (1-D optimization):
+    \[
+    t^{(k)} = \arg\min_{t \ge 0} f(\mathbf{x}^{(k)} + t \cdot \Delta\mathbf{x}^{(k)})
+    \]
+    \item Update:
+    \[
+    \mathbf{x}^{(k+1)} = \mathbf{x}^{(k)} + t^{(k)} \Delta\mathbf{x}^{(k)}
+    \]
+    \item $k := k + 1$
+\end{enumerate}
+\textbf{until} $\|\mathbf{x}^{(k)} - \mathbf{x}^{(k-1)}\| < \varepsilon$ \\
+\textbf{Output:} $\mathbf{x}^{(k)}$
+If you choose the L2-norm, the unit ball is a circle (2D) or a sphere (3D).
+\begin{figure}[!ht]
+    \centering
+    % Achte darauf, dass der Pfad stimmt (images/...)
+    \includegraphics[width=0.5\textwidth]{images/UnitBallL2.png}
+    \caption{Unit ball in L2 norm}
+    \label{fig:unit_ball_l2}
+\end{figure}
+In this case, the steepest descent direction is simply the negative gradient direction. 
+Therefore we get the same update rule as in gradient descent.\\
+
+If you choose the L1-norm, the unit ball is a diamond (2D) or an octahedron (3D).
+\begin{figure}[!ht]
+    \centering
+    % Achte darauf, dass der Pfad stimmt (images/...)
+    \includegraphics[width=\textwidth]{images/UnitBallL1.png}
+    \caption{Unit ball in L1 norm}
+    \label{fig:unit_ball_l1}
+\end{figure}
+In this case, the steepest descent direction corresponds to the coordinate axis clostest to the negative gradient direction.
+This leads to a coordinate descent method, where we optimize along one coordinate axis in each iteration:
+\begin{align*}
+    \Delta\mathbf{x} &= \arg\min_{\mathbf{u}} \left\{ \nabla f(\mathbf{x})^T \mathbf{u} \, ; \, \|\mathbf{u}\|_1 = 1 \right\} \\
+    &= -\operatorname{sgn} \left( \frac{\partial}{\partial x_i} f(\mathbf{x}) \right) \mathbf{e}_i
+\end{align*}
+where $e_i$ is the unit vector along the coordinate axis with the highest absolute gradient value.\\
+
+If you choose the $\text{L}_\infty$ norm, the unit ball is a square (2D) or a cube (3D).
+\begin{figure}[!ht]
+    \centering
+    % Achte darauf, dass der Pfad stimmt (images/...)
+    \includegraphics[width=0.8\textwidth]{images/UnitBallLInf.png}
+    \caption{Unit ball in L-Infinity norm}
+    \label{fig:unit_ball_linf}
+\end{figure}
+In this case, the direction of steepest descent is always aligned withe the diagonal of the unit cube (\ang{0}).\\
+
+If you choose the $\text{L}_\text{P}$ norm, the unit ball is a rounded square (2D) or a rounded cube (3D).
+\begin{figure}[!ht]
+    \centering
+    % Achte darauf, dass der Pfad stimmt (images/...)
+    \includegraphics[width=0.5\textwidth]{images/UnitBallLP.png}
+    \caption{Unit ball in L-P norm}
+    \label{fig:unit_ball_lp}
+\end{figure}
+Using a quadratic norm defined by a positive definite matrix $\mathbf{P}$ ($\|\vec{u}\|_{\mathbf{P}} = \sqrt{\vec{u}^T \mathbf{P} \vec{u}}$), the steepest descent direction is:
+
+\begin{equation}
+    \Delta\vec{x} = -\mathbf{P}^{-1} \nabla f(\vec{x})
+\end{equation}
+
+\textbf{Connection to LDA:}
+Just like in LDA, where we transform the feature space to make the class distributions spherical (whitening) using the covariance matrix, this optimization step uses $\mathbf{P}^{-1}$ to account for the geometry of the function.
+\begin{itemize}
+    \item If $\mathbf{P} = \mathbf{I}$: Standard Gradient Descent (assumes spherical geometry).
+    \item If $\mathbf{P} = \nabla^2 f(\vec{x})$ (Hessian): Newton's Method (accounts for local curvature).
+\end{itemize}
+
+\subsection{Newton's Method}
+Newton's method uses second-order information (the Hessian matrix) to find the search direction.
+It uses the second-order Taylor polynomial to approximate the function $f(x)$ at the current point $x^{(k)}$ and finds the minimum of this approximation.
+The minimum is the new point $x^{(k+1)}$.
+\begin{figure}[!ht]
+    \centering
+    % Achte darauf, dass der Pfad stimmt (images/...)
+    \includegraphics[width=0.5\textwidth]{images/Taylor.png}
+    \caption{Newtons Method using 2nd order Taylor approximation}
+    \label{fig:newtons_method_taylor}
+\end{figure}
+The second-order Taylor approximation of $f(\vec{x})$ is given by:
+\begin{equation}
+    f(\vec{x} + \Delta \vec{x}) \approx f(\vec{x}) + \nabla f(\vec{x})^T \Delta \vec{x} + \frac{1}{2} \Delta \vec{x}^T ()\nabla^2 f(\vec{x})) \Delta \vec{x} 
+\end{equation}
+To find the minimum of this approximation, we set the gradient with respect to $\Delta \vec{x}$ to zero (works because the function is convex) and resolve for $\Delta \vec{x}$:
+\begin{equation}
+    \Delta \vec{x} = - \underbrace{(\nabla^2 f(\vec{x}))^{-1}}_{\text{inverse of the Hessian}} \nabla f(\vec{x})
+\end{equation}
+\textbf{Note:} Have a look at the steepest descent method using the \textbf{$\text{L}_\text{P}$}-norm. 
+When $P$ is the Hessian matrix ($\mathbf{P} = \nabla^2 f(\vec{x})$), we get the same search direction as in Newton's method.
+
 
 
 \newpage
