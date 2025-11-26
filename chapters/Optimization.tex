@@ -277,6 +277,39 @@ To guarantee strong duality, we need at least one "strictly feasible" point.
     \item At the same time, it must \textbf{exactly satisfy} the linear equality constraints ($A\mathbf{x} = \mathbf{b}$).
 \end{itemize}
 In simple terms: You need a point that walks exactly on the required path ($A\mathbf{x}=\mathbf{b}$) without touching the walls of the feasible region ($f_i(\mathbf{x}) < 0$).
+\\
 
-If $\vec{x}$ is a primal optimal point and $\vec{\lambad}^*, \vec{\ni}^*$ are dual optimal points with a zero 
+If $\vec{x}^*$ is a primal optimal point and $\vec{\lambda}^*, \vec{\nu}^*$ are dual optimal points with a zero duality gap, the gradient of the Lagrangian $L(\vec{x}, \vec{\lambda}^*, \vec{\nu}^*)$ with respect to $\vec{x}$ must be zero at $\vec{x}^*$:
+\begin{equation}
+    \nabla_x L(\vec{x}^*, \vec{\lambda}^*, \vec{\nu}^*) = \nabla f_0(\vec{x}^*) + \sum_{i=1}^m \lambda_i^* \nabla f_i(\vec{x}^*) + \sum_{i=1}^p \nu_i^* \nabla h_i(\vec{x}^*) = 0
+    \label{lagrangian_zero_grad}
+\end{equation}
+\\
+\textbf{KKT Conditions:}\\
+If strong duality holds (e.g., because Slater's condition is met), any pair of optimal primal ($\vec{x}^*$) and dual ($\vec{\lambda}^*, \vec{\nu}^*$) variables \textbf{must} satisfy the following four conditions:
+
+\begin{enumerate}
+    \item Primal constrains:
+    \begin{align*}
+        f_i(\vec{x}) &\leq 0, \quad i = 1, 2, ..., m \\
+        h_i(\vec{x}) &= 0, \quad i = 1, 2, ..., p
+    \end{align*}
+
+    \item Dual constraints: $\vec{\lambda} \geq 0$
+
+    \item Complementary slackness: $\lambda_i \cdot f_i(\vec{x}) = 0$ (Either the constraint is active, or the corresponding dual variable is zero).
+
+    \item Gradient of Lagrangian is zero (as shown in \ref{lagrangian_zero_grad})
+\end{enumerate}
+
+
+To summarize all this in simple terms:
+\begin{itemize}
+    \item For any optimization problem with differentiable objective and constraint functions for
+which strong duality obtains, any pair of primal and dual optimal points must satisfy
+the KKT conditions.
+    \item Consequently, if we can find points that satisfy the KKT conditions, we have found optimal primal and dual points with zero duality gap.
+    \item The KKT conditions are necessary for optimality in convex problems with strong duality, and they are also sufficient.
+\end{itemize}
+
 \newpage
