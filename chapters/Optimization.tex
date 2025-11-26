@@ -1,72 +1,48 @@
+% Datei: chapters/03_optimization.tex
+
 \section{Optimization}
+
+Optimization is crucial for many solutions in pattern recognition (e.g., training classifiers). We distinguish between unconstrained and constrained optimization problems.
+
 \subsection{Convexity}
-A function \( f: \mathbb{R}^n \rightarrow \mathbb{R} \) is called \textbf{convex} if for all \( x, y \in \mathbb{R}^n \) and for all \( \theta \in [0, 1] \), the following condition holds:
+A function $f : \mathbb{R}^n \rightarrow \mathbb{R}$ is called \textbf{convex} if for all $\vec{x}, \vec{y} \in \mathbb{R}^n$ and for all $\theta \in [0, 1]$, the following condition holds:
 
 \begin{summarybox}{Definition: Convexity \& Concavity}
-    A function $f : \mathbb{R}^d \rightarrow \mathbb{R}$ is \textbf{convex} if the domain $\operatorname{dom}(f)$ of $f$ is a convex set and if $\forall \mathbf{x}, \mathbf{y} \in \operatorname{dom}(f)$, and $\theta$ with $0 \leq \theta \leq 1$, we have:
+    A function $f : \mathbb{R}^d \rightarrow \mathbb{R}$ is \textbf{convex} if the domain $\operatorname{dom}(f)$ is a convex set and if $\forall \vec{x}, \vec{y} \in \operatorname{dom}(f)$, and $\theta$ with $0 \leq \theta \leq 1$, we have:
     \begin{equation}
-        f(\theta\mathbf{x} + (1-\theta)\mathbf{y}) \leq \theta f(\mathbf{x}) + (1-\theta)f(\mathbf{y})
+        f(\theta\vec{x} + (1-\theta)\vec{y}) \leq \theta f(\vec{x}) + (1-\theta)f(\vec{y})
     \end{equation}
-    
-    A function $f : \mathbb{R}^d \rightarrow \mathbb{R}$ is \textbf{concave} if $-f$ is convex.
+    A function is \textbf{concave} if $-f$ is convex.
 \end{summarybox}
 
-This means that the line segment connecting any two points on the graph of the function lies \textbf{above or on the graph itself}. Convex functions have the property that any local minimum is also a global minimum, which is particularly useful in optimization problems.
+\textbf{Implication:} For convex functions, any local minimum is also a global minimum. This property is particularly useful because gradient-based methods won't get stuck in suboptimal local minima.
 
 \subsection{Unconstrained Optimization}
-In unconstrained optimization, we aim to find the minimum (or maximum) of a function $f : \mathbb{R}^d \rightarrow \mathbb{R}$ without any restrictions on the variable values.
-Typically we assume that the function \( f \) is twice differentiable and convex.
-The unconstrained otpimization is the solution to the minimization problem
+Here, we aim to find the minimum of a function $f(\vec{x})$ without any restrictions on $\vec{x}$. Typically, we assume $f$ is twice differentiable and convex.
+
 \begin{equation}
-    \vec{x}^* = \arg \min_{\vec{x}} f(\vec{x})
+    \vec{x}^* = \operatorname{argmin}_{\vec{x}} f(\vec{x})
 \end{equation}
-Where $\vec{x}$ denotes the optimal point.
-For this family of functions, a necessary and sufficient condition for a minimum are the zero-crossings of the gradient:
+
+A necessary and sufficient condition for the minimum is the zero-crossing of the gradient:
 \begin{equation}
     \nabla f(\vec{x}^*) = 0
 \end{equation}
-Most of the time, we cannot find a closed-form solution to this equation.
-So we need to follow an iterative approach:
+Since a closed-form solution is often impossible, we use iterative approaches:
 \begin{align*}
-    \text{initialization} & \qquad \mathbf{x}^{(0)} \\
-    \text{iteration step} & \qquad \mathbf{x}^{(k+1)} = g(\mathbf{x}^{(k)})
+    \text{initialization:} & \quad \vec{x}^{(0)} \\
+    \text{iteration step:} & \quad \vec{x}^{(k+1)} = \vec{x}^{(k)} + t^{(k)} \Delta \vec{x}^{(k)}
 \end{align*}
+where $\Delta \vec{x}^{(k)}$ is the \textbf{search direction} and $t^{(k)}$ is the \textbf{step size}.
 
-where $g : \mathbb{R}^d \rightarrow \mathbb{R}^d$ is the update function.
+\subsubsection{Finding a Suitable Step Size (Line Search)}
+Choosing the correct step size $t^{(k)}$ is crucial:
+\begin{itemize}
+    \item \textbf{Too small:} Convergence is extremely slow.
+    \item \textbf{Too large:} The algorithm might overshoot the minimum or diverge.
+\end{itemize}
+Instead of finding the exact optimal $t$ (which is computationally expensive), we use \textbf{inexact line search} methods like \textbf{Backtracking Line Search} (Armijo-Goldstein).
 
-The iterations terminate, if
-\[
-\|\mathbf{x}^{(k+1)} - \mathbf{x}^{(k)}\| < \varepsilon,
-\]
-for some small threshold \(\varepsilon > 0\). This means that there is not furher significant change in the variable values, indicating convergence to a solution.
-Some common iterative optimization methods will be discussed below.
-
-\subsubsection{Descent Methods}
-The basic idea of descent methods is to iteratively take small steps $\Delta \vec{x}^{(k)}$ in the direction of \textbf{steepest descent} (i.e., the negative gradient) to minimize the function value:
-\begin{equation}
-    \vec{x}^{(k+1)} = \vec{x}^{(k)} + t^{(k)} \Delta \vec{x}^{(k)}
-\end{equation}
-where
-\begin{align}
-    \Delta\vec{x}^{(k)} &\in \mathbb{R}^d : && \text{is the search direction in the k-th iteration} \\
-    t^{(k)} &\in \mathbb{R} : && \text{denotes the step length in the k-th iteration}
-\end{align}
-and where we expect:
-\begin{equation}
-    f(\vec{x}^{(k+1)}) < f(\vec{x}^{(k)}) \quad \text{except} \quad \vec{x}^{(k+1)} = \vec{x}^{(k)} = \vec{x}^*
-\end{equation}
-\textbf{Finding a suitable step size}\\
-It is important to choose an appropriate step size \( t^{(k)} \) to ensure convergence and avoid overshooting the minimum.
-If $t$ is too large, we might overshoot the minimum, while if it is too small, convergence can be very slow or get stuck in local minima.
-\begin{figure}[!ht]
-    \centering
-    % Achte darauf, dass der Pfad stimmt (images/...)
-    \includegraphics[width=\textwidth]{images/learning_rate.png}
-    \caption{Learning Rate Illustration}
-    \label{fig:learning_rate}
-\end{figure}
-The procedure to find a suitable step size is called \textbf{line search}.
-You can basically see this as a function $F(\vec{x}^{(k)}) + t^{(k)} \Delta \vec{x}^{(k)}$ where $\Delta \vec{x}^{(k)}$ and $\vec{x}^{(k)}$ are fixed and we only vary $t^{(k)}$ to find the minimum of this 1D function.
 \begin{figure}[!ht]
     \centering
     % Achte darauf, dass der Pfad stimmt (images/...)
@@ -74,125 +50,86 @@ You can basically see this as a function $F(\vec{x}^{(k)}) + t^{(k)} \Delta \vec
     \caption{Backtracking line search}
     \label{fig:backtracking_line_search}
 \end{figure}
-A common method for line search is \textbf{backtracking line search (Armijo-Goldstein Algorithm)}, which starts with an initial step size and iteratively reduces it until a sufficient decrease in the function value is observed.
+The goal is to find a step size $t$ that, that puts us below the red line, ensuring that the function value decreases sufficiently (not just barely) relative to the step size.
+\begin{summarybox}{Armijo-Goldstein Condition (Backtracking)}
+    We start with a large step size ($t=1$) and iteratively reduce it ($t := \beta t$) until the function value decreases sufficiently. The condition is:
+    \begin{equation}
+        f(\vec{x} + t\Delta\vec{x}) \le f(\vec{x}) + \alpha t \nabla f(\vec{x})^T \Delta\vec{x}
+    \end{equation}
+    Where $\alpha \in (0, 0.5)$ defines the required "steepness" of the descent.
+\end{summarybox}
 
 \subsubsection{Gradient Descent}
-A natutral choice for the search direction is the negative gradient of the function at the current point:
+The most natural choice for the search direction is the direction of steepest descent, which is the negative gradient.
 \begin{equation}
-    x^{(k+1)} = x^{(k)} - t^{(k)} \nabla f(x^{(k)})
+    \Delta \vec{x}^{(k)} = - \nabla f(\vec{x}^{(k)})
 \end{equation}
-You can use either a fixed step size or perform a line search to determine the optimal step size at each iteration.\\
 
-\textbf{Algorithm:}\\
-\textbf{Input:} function $f$, initial estimate $\mathbf{x}^{(0)}$ \\
-\textbf{initialize:} $k := 0$ \\
-\textbf{repeat}
+\textbf{Algorithm: Gradient Descent}
 \begin{enumerate}
-    \item Set descent direction: $\Delta\mathbf{x}^{(k)} = - \nabla f(\mathbf{x}^{(k)})$
-    \item Line search (1-D optimization):
-    \[
-    t^{(k)} = \arg\min_{t \ge 0} f(\mathbf{x}^{(k)} + t \cdot \Delta\mathbf{x}^{(k)})
-    \]
-    \item Update:
-    \[
-    \mathbf{x}^{(k+1)} = \mathbf{x}^{(k)} + t^{(k)} \Delta\mathbf{x}^{(k)}
-    \]
-    \item $k := k + 1$
+    \item Set direction: $\Delta \vec{x}^{(k)} = - \nabla f(\vec{x}^{(k)})$
+    \item Line search (find optimal step size $t$):
+    \[ t^{(k)} = \operatorname{argmin}_{t \ge 0} f(\vec{x}^{(k)} + t \Delta \vec{x}^{(k)}) \]
+    (Usually approximated via \textbf{Backtracking Line Search / Armijo-Goldstein}).
+    \item Update: $\vec{x}^{(k+1)} = \vec{x}^{(k)} + t^{(k)} \Delta \vec{x}^{(k)}$
+    \item Repeat until convergence ($\| \vec{x}^{(k)} - \vec{x}^{(k-1)} \| < \epsilon$).
 \end{enumerate}
-\textbf{until} $\|\mathbf{x}^{(k)} - \mathbf{x}^{(k-1)}\|_2 < \varepsilon$ \\
-\textbf{Output:} $\mathbf{x}^{(k)}$
 
-
-\subsubsection{Normalized Steepest Descent}
-In normalilzed steepest descent, the search direction is given by the following optimization problem:
+\subsubsection{Normalized Steepest Descent (General Norms)}
+Ideally, we want the direction that gives the largest decrease in the linear approximation of $f$. This depends on the chosen norm $\|\cdot\|$.
 \begin{equation}
-    \Delta \vec{x} = \arg\min_{u} \nabla f(\vec{x})^T \vec{u} \quad \text{s.t.} \quad \|\vec{u}\| = 1
-\end{equation}
-This means that we compute the inner product of the gradient and a unit vector $\vec{u}$ (project the gradient onto $\vec{u}$) and choose the direction with the steepest descent.\\
-
-\textbf{Algorithm:}\\
-\textbf{Input:} function $f$, initial estimate $\mathbf{x}^{(0)}$, norm $\|\cdot\|$ \\
-\textbf{initialize:} $k := 0$ \\
-\textbf{repeat}
-\begin{enumerate}
-    \item Compute highest descent direction:
-    \[
-    \Delta\mathbf{x}^{(k)} = \arg\min_{\mathbf{u}} \{ \nabla f(\mathbf{x}^{(k)})^T \mathbf{u} ; \|\mathbf{u}\| = 1 \}
-    \]
-    \item Line search (1-D optimization):
-    \[
-    t^{(k)} = \arg\min_{t \ge 0} f(\mathbf{x}^{(k)} + t \cdot \Delta\mathbf{x}^{(k)})
-    \]
-    \item Update:
-    \[
-    \mathbf{x}^{(k+1)} = \mathbf{x}^{(k)} + t^{(k)} \Delta\mathbf{x}^{(k)}
-    \]
-    \item $k := k + 1$
-\end{enumerate}
-\textbf{until} $\|\mathbf{x}^{(k)} - \mathbf{x}^{(k-1)}\| < \varepsilon$ \\
-\textbf{Output:} $\mathbf{x}^{(k)}$
-If you choose the L2-norm, the unit ball is a circle (2D) or a sphere (3D).
-\begin{figure}[!ht]
-    \centering
-    % Achte darauf, dass der Pfad stimmt (images/...)
-    \includegraphics[width=0.5\textwidth]{images/UnitBallL2.png}
-    \caption{Unit ball in L2 norm}
-    \label{fig:unit_ball_l2}
-\end{figure}
-In this case, the steepest descent direction is simply the negative gradient direction. 
-Therefore we get the same update rule as in gradient descent.\\
-
-If you choose the L1-norm, the unit ball is a diamond (2D) or an octahedron (3D).
-\begin{figure}[!ht]
-    \centering
-    % Achte darauf, dass der Pfad stimmt (images/...)
-    \includegraphics[width=\textwidth]{images/UnitBallL1.png}
-    \caption{Unit ball in L1 norm}
-    \label{fig:unit_ball_l1}
-\end{figure}
-In this case, the steepest descent direction corresponds to the coordinate axis clostest to the negative gradient direction.
-This leads to a coordinate descent method, where we optimize along one coordinate axis in each iteration:
-\begin{align*}
-    \Delta\mathbf{x} &= \arg\min_{\mathbf{u}} \left\{ \nabla f(\mathbf{x})^T \mathbf{u} \, ; \, \|\mathbf{u}\|_1 = 1 \right\} \\
-    &= -\operatorname{sgn} \left( \frac{\partial}{\partial x_i} f(\mathbf{x}) \right) \mathbf{e}_i
-\end{align*}
-where $e_i$ is the unit vector along the coordinate axis with the highest absolute gradient value.\\
-
-If you choose the $\text{L}_\infty$ norm, the unit ball is a square (2D) or a cube (3D).
-\begin{figure}[!ht]
-    \centering
-    % Achte darauf, dass der Pfad stimmt (images/...)
-    \includegraphics[width=0.8\textwidth]{images/UnitBallLInf.png}
-    \caption{Unit ball in L-Infinity norm}
-    \label{fig:unit_ball_linf}
-\end{figure}
-In this case, the direction of steepest descent is always aligned withe the diagonal of the unit cube (\ang{0}).\\
-
-If you choose the $\text{L}_\text{P}$ norm, the unit ball is a rounded square (2D) or a rounded cube (3D).
-\begin{figure}[!ht]
-    \centering
-    % Achte darauf, dass der Pfad stimmt (images/...)
-    \includegraphics[width=0.5\textwidth]{images/UnitBallLP.png}
-    \caption{Unit ball in L-P norm}
-    \label{fig:unit_ball_lp}
-\end{figure}
-Using a quadratic norm defined by a positive definite matrix $\mathbf{P}$ ($\|\vec{u}\|_{\mathbf{P}} = \sqrt{\vec{u}^T \mathbf{P} \vec{u}}$), the steepest descent direction is:
-
-\begin{equation}
-    \Delta\vec{x} = -\mathbf{P}^{-1} \nabla f(\vec{x})
+    \Delta \vec{x} = \operatorname{argmin}_{\vec{u}} \{ \nabla f(\vec{x})^T \vec{u} \mid \|\vec{u}\| = 1 \}
 \end{equation}
 
-\textbf{Connection to LDA:}
-Just like in LDA, where we transform the feature space to make the class distributions spherical (whitening) using the covariance matrix, this optimization step uses $\mathbf{P}^{-1}$ to account for the geometry of the function.
+\begin{figure}[h!]
+    \centering
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \includegraphics[width=0.8\linewidth]{images/UnitBallL2.png}
+        \caption{Unit ball in $L_2$ norm}
+    \end{minipage}\hfill
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \includegraphics[width=0.8\linewidth]{images/UnitBallL1.png}
+        \caption{Unit ball in $L_1$ norm}
+    \end{minipage}
+\end{figure}
+
+\begin{figure}[h!]
+    \centering
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \includegraphics[width=0.8\linewidth]{images/UnitBallLP.png}
+        \caption{Unit ball in $L_P$ norm}
+    \end{minipage}\hfill
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \includegraphics[width=0.8\linewidth]{images/UnitBallLInf.png}
+        \caption{Unit ball in $L_\infty$ norm}
+    \end{minipage}
+\end{figure}
+
 \begin{itemize}
-    \item If $\mathbf{P} = \mathbf{I}$: Standard Gradient Descent (assumes spherical geometry).
-    \item If $\mathbf{P} = \nabla^2 f(\vec{x})$ (Hessian): Newton's Method (accounts for local curvature).
+    \item \textbf{$L_2$-Norm:} Direction is $-\nabla f(\vec{x})$ (Standard Gradient Descent). Unit ball is a sphere.
+    \item \textbf{$L_1$-Norm:} Direction is along the coordinate axis with the largest absolute gradient value (Coordinate Descent). Unit ball is a diamond.
+    \item \textbf{$L_\infty$-Norm:} Direction points towards the corners of the unit hypercube (e.g., vector with entries $\pm 1$). Unit ball is a square/cube.
+    \item \textbf{$L_P$-Norm (Quadratic Norm):} Defined by a positive definite matrix $\mathbf{P}$ as $\|\vec{u}\|_{\mathbf{P}} = \sqrt{\vec{u}^T \mathbf{P} \vec{u}}$.
+    \begin{equation}
+        \Delta \vec{x} = - \mathbf{P}^{-1} \nabla f(\vec{x})
+    \end{equation}
+    This transforms the space to make the contours spherical before taking the gradient step (similar to whitening in LDA). The update direction aligns with the largest principal component in the transformed space.
+
+    \textbf{Crucial Connection:} If we set $\mathbf{P} = \nabla^2 f(\vec{x})$ (the Hessian), we effectively perform steepest descent in the local curvature norm, which yields \textbf{Newton's Method}.
 \end{itemize}
 
+
+
 \subsubsection{Newton's Method}
-Newton's method uses second-order information (the Hessian matrix) to find the search direction.
-It uses the second-order Taylor polynomial to approximate the function $f(x)$ at the current point $x^{(k)}$ and finds the minimum of this approximation.
-The minimum is the new point $x^{(k+1)}$.
+Newton's method finds the search direction by approximating the function $f(\vec{x})$ locally using a \textbf{second-order Taylor polynomial}:
+\begin{equation}
+    f(\vec{x} + \Delta\vec{x}) \approx f(\vec{x}) + \nabla f(\vec{x})^T \Delta\vec{x} + \frac{1}{2} \Delta\vec{x}^T \nabla^2 f(\vec{x}) \Delta\vec{x}
+\end{equation}
+
 \begin{figure}[!ht]
     \centering
     % Achte darauf, dass der Pfad stimmt (images/...)
@@ -200,116 +137,77 @@ The minimum is the new point $x^{(k+1)}$.
     \caption{Newtons Method using 2nd order Taylor approximation}
     \label{fig:newtons_method_taylor}
 \end{figure}
-The second-order Taylor approximation of $f(\vec{x})$ is given by:
-\begin{equation}
-    f(\vec{x} + \Delta \vec{x}) \approx f(\vec{x}) + \nabla f(\vec{x})^T \Delta \vec{x} + \frac{1}{2} \Delta \vec{x}^T ()\nabla^2 f(\vec{x})) \Delta \vec{x} 
-\end{equation}
-To find the minimum of this approximation, we set the gradient with respect to $\Delta \vec{x}$ to zero (works because the function is convex) and resolve for $\Delta \vec{x}$:
-\begin{equation}
-    \Delta \vec{x} = - \underbrace{(\nabla^2 f(\vec{x}))^{-1}}_{\text{inverse of the Hessian}} \nabla f(\vec{x})
-\end{equation}
-\textbf{Note:} Have a look at the steepest descent method using the \textbf{$\text{L}_\text{P}$}-norm. 
-When $P$ is the Hessian matrix ($\mathbf{P} = \nabla^2 f(\vec{x})$), we get the same search direction as in Newton's method.
 
-\newpage
+We find the optimal step $\Delta\vec{x}$ by setting the derivative of this approximation to zero:
+\begin{align*}
+    \nabla_{\Delta\vec{x}} (\dots) &= \nabla f(\vec{x}) + \nabla^2 f(\vec{x}) \Delta\vec{x} = 0 \\
+    \Rightarrow \quad \Delta\vec{x} &= - (\nabla^2 f(\vec{x}))^{-1} \nabla f(\vec{x})
+\end{align*}
+
+\textbf{Key Difference:} While Gradient Descent assumes the local geometry is a sphere (linear approximation), Newton's Method accounts for the local \textbf{curvature} (ellipsoidal geometry) given by the Hessian $\nabla^2 f(\vec{x})$.
+
 \subsection{Constrained Optimization}
-We consider the primal optimization problem:
+We consider the primal optimization problem with constraints:
 \begin{align*}
-    \text{minimize} \quad & f_0(\mathbf{x}) \\
-    \text{subject to} \quad & f_i(\mathbf{x}) \leq 0, \quad i = 1, 2, \dots, m \\
-    & h_i(\mathbf{x}) = 0, \quad i = 1, 2, \dots, p
+    \text{minimize} \quad & f_0(\vec{x}) \\
+    \text{subject to} \quad & f_i(\vec{x}) \leq 0, \quad i = 1, \dots, m \\
+    & h_i(\vec{x}) = 0, \quad i = 1, \dots, p
 \end{align*}
-\textbf{Note:} $f_0(\vec{x})$ is not required to be convex!
+\textit{Note: $f_0$ is not required to be convex yet.}
 
-To optimize a function with constraints we have to use Lagrange-Multipliers.
-The Lagrangian $L$ is defined as:
+\subsubsection{The Lagrangian \& Dual Function}
+To handle constraints, we define the \textbf{Lagrangian} $L$:
 \begin{equation}
-    L(\vec{x}, \vec{\lambda}, \vec{\nu}) = f_0(\vec{x}) + \underbrace{\sum_{i=1}^m \lambda_i f_i(\vec{x})}_{\text{sum over all inequality constraints}} + \underbrace{\sum_{i=1}^p \nu_i h_i(\vec{x})}_{\text{sum over all equality constraints}}
+    L(\vec{x}, \vec{\lambda}, \vec{\nu}) = f_0(\vec{x}) + \sum_{i=1}^m \lambda_i f_i(\vec{x}) + \sum_{i=1}^p \nu_i h_i(\vec{x})
 \end{equation}
-We add the constraints and weight them with multipliers $\lambda, \nu$ (Langrange multipliers or simply dual variables).
-The optimization problem can then be reformulated using the \textbf{Lagrange dual function}:
-\begin{align*}
-    g(\vec{\lambda}, \vec{\nu}) &= \inf_{\vec{x}} L(\vec{x}, \vec{\lambda}, \vec{\nu}) \\
-    &= \inf_{\vec{x}} \left( f_0(\vec{x}) + \sum_{i=1}^m \lambda_i f_i(\vec{x}) + \sum_{i=1}^p \nu_i h_i(\vec{x}) \right)
-\end{align*}
-\begin{summarybox}{Definition: Infimum ($\inf$)}
-    The \textbf{infimum} is the greatest lower bound of a set. Unlike the minimum, it exists even for open sets (e.g., for the set $\{x \in \mathbb{R} \mid x > 0\}$, the minimum does not exist, but the infimum is 0).
+We formulate the \textbf{Lagrange dual function} $g(\vec{\lambda}, \vec{\nu})$ by minimizing $L$ over $\vec{x}$:
+\begin{equation}
+    g(\vec{\lambda}, \vec{\nu}) = \inf_{\vec{x}} L(\vec{x}, \vec{\lambda}, \vec{\nu})
+\end{equation}
+
+\begin{summarybox}{Properties of the Dual Function}
+    \begin{itemize}
+        \item $g(\vec{\lambda}, \vec{\nu})$ is \textbf{always concave}, even if the primal problem is not convex.
+        \item It provides a \textbf{lower bound} on the optimal primal value $p^*$: $g(\vec{\lambda}, \vec{\nu}) \leq p^*$.
+    \end{itemize}
 \end{summarybox}
-\textbf{Important Properties:}
+
+This leads to the \textbf{Dual Problem}: Find the best lower bound by maximizing $g$.
+\[ \text{maximize } g(\vec{\lambda}, \vec{\nu}) \quad \text{subject to } \vec{\lambda} \succeq 0 \]
+
+\subsubsection{Strong Duality \& Slater's Condition}
 \begin{itemize}
-    \item The Lagrange dual function is always \textbf{concave}, even if the original primal problem is not convex!
-    \item \textbf{Pointwise Affine:} The dual function is a pointwise affine function in the dual variables.
-    \begin{itemize}
-        \item \textit{Explanation:} If we fix $\vec{x}$, the Lagrangian $L(\vec{x}, \vec{\lambda}, \vec{\nu})$ becomes just a linear equation in terms of $\vec{\lambda}$ and $\vec{\nu}$ (like $a + b\lambda + c\nu$). It describes a flat plane.
-    \end{itemize}
-    \item It provides a \textbf{lower bound} on the optimal value $p^*$ of the primal problem. For any $\vec{\lambda} \succeq 0$ and any $\vec{\nu}$, the following holds:
-    \begin{equation}
-        g(\vec{\lambda}, \vec{\nu}) \leq p^*
-    \end{equation}
+    \item \textbf{Weak Duality:} $d^* \le p^*$ (Always true). The difference $p^* - d^*$ is the \textit{duality gap}.
+    \item \textbf{Strong Duality:} $d^* = p^*$ (Gap is zero). This allows solving the dual problem to find the primal solution.
 \end{itemize}
-This leads us to the \textbf{Lagrange Dual Problem}, where we try to find the best (highest) lower bound:
-\begin{align*}
-    \text{maximize} \quad & g(\vec{\lambda}, \vec{\nu}) \\
-    \text{subject to} \quad & \vec{\lambda} \succeq 0
-\end{align*}
 
-\begin{summarybox}{Optimal Duality Gap}
-    Let $p^*$ be the optimal value of the primal problem and $d^*$ the optimal value of the Lagrange dual problem.
-
-    \begin{itemize}
-        \item The difference $p^* - d^*$ is the \textbf{optimal duality gap}.
-        \item If $p^* = d^*$, the duality gap is zero. In this case we talk about \textbf{strong duality}.
-        \item If $p^* > d^*$, we have \textbf{weak duality}.
-    \end{itemize}
-\end{summarybox}
-
-The duality gap is always zero when \textbf{Slater's Condition} is fulfilled:
+Strong duality is guaranteed if \textbf{Slater's Condition} holds:
 \begin{summarybox}{Theorem: Slater's Condition}
-    For a \textbf{convex} optimization problem, strong duality ($p^* = d^*$) holds if there exists a strictly feasible point $\mathbf{x}$ such that:
+    For a \textbf{convex} optimization problem, strong duality holds if there exists a strictly feasible point $\vec{x}$ such that:
     \begin{equation}
-        f_i(\mathbf{x}) < 0 \quad \forall i=1,\dots,m \quad \text{and} \quad A\mathbf{x} = \mathbf{b}
+        f_i(\vec{x}) < 0 \quad \forall i=1,\dots,m \quad \text{and} \quad A\vec{x} = \vec{b}
     \end{equation}
 \end{summarybox}
-\textbf{Intuition:}
-To guarantee strong duality, we need at least one "strictly feasible" point.
-\begin{itemize}
-    \item It must lie \textbf{strictly inside} the inequality constraints ($f_i(\mathbf{x}) < 0$), meaning it does not touch these boundaries.
-    \item At the same time, it must \textbf{exactly satisfy} the linear equality constraints ($A\mathbf{x} = \mathbf{b}$).
-\end{itemize}
-In simple terms: You need a point that walks exactly on the required path ($A\mathbf{x}=\mathbf{b}$) without touching the walls of the feasible region ($f_i(\mathbf{x}) < 0$).
-\\
+\textbf{Refinement:} If constraints are affine (linear), touching the boundary ($f_i(\vec{x}) \le 0$) is allowed. Only non-linear constraints require strict inequality.
 
-If $\vec{x}^*$ is a primal optimal point and $\vec{\lambda}^*, \vec{\nu}^*$ are dual optimal points with a zero duality gap, the gradient of the Lagrangian $L(\vec{x}, \vec{\lambda}^*, \vec{\nu}^*)$ with respect to $\vec{x}$ must be zero at $\vec{x}^*$:
-\begin{equation}
-    \nabla_x L(\vec{x}^*, \vec{\lambda}^*, \vec{\nu}^*) = \nabla f_0(\vec{x}^*) + \sum_{i=1}^m \lambda_i^* \nabla f_i(\vec{x}^*) + \sum_{i=1}^p \nu_i^* \nabla h_i(\vec{x}^*) = 0
-    \label{lagrangian_zero_grad}
-\end{equation}
-\\
-\textbf{KKT Conditions:}\\
-If strong duality holds (e.g., because Slater's condition is met), any pair of optimal primal ($\vec{x}^*$) and dual ($\vec{\lambda}^*, \vec{\nu}^*$) variables \textbf{must} satisfy the following four conditions:
+\subsubsection{Karush-Kuhn-Tucker (KKT) Conditions}
+If strong duality holds, any optimal pair $(\vec{x}^*, \vec{\lambda}^*, \vec{\nu}^*)$ \textbf{must} satisfy the KKT conditions:
 
 \begin{enumerate}
-    \item Primal constrains:
-    \begin{align*}
-        f_i(\vec{x}) &\leq 0, \quad i = 1, 2, ..., m \\
-        h_i(\vec{x}) &= 0, \quad i = 1, 2, ..., p
-    \end{align*}
+    \item \textbf{Primal Feasibility:}
+    \[ f_i(\vec{x}^*) \le 0, \quad h_i(\vec{x}^*) = 0 \]
 
-    \item Dual constraints: $\vec{\lambda} \geq 0$
+    \item \textbf{Dual Feasibility:} 
+    \[ \vec{\lambda}^* \succeq 0 \]
 
-    \item Complementary slackness: $\lambda_i \cdot f_i(\vec{x}) = 0$ (Either the constraint is active, or the corresponding dual variable is zero).
+    \item \textbf{Complementary Slackness:} (Crucial for SVMs!)
+    \[ \lambda_i^* \cdot f_i(\vec{x}^*) = 0 \]
+    \textit{Meaning: Either a constraint is active ($f_i(\vec{x})=0$) or its multiplier is zero ($\lambda_i=0$).}
 
-    \item Gradient of Lagrangian is zero (as shown in \ref{lagrangian_zero_grad})
+    \item \textbf{Stationarity:} Gradient of Lagrangian is zero.
+    \[ \nabla f_0(\vec{x}^*) + \sum \lambda_i^* \nabla f_i(\vec{x}^*) + \sum \nu_i^* \nabla h_i(\vec{x}^*) = 0 \]
 \end{enumerate}
 
-
-To summarize all this in simple terms:
-\begin{itemize}
-    \item For any optimization problem with differentiable objective and constraint functions for
-which strong duality obtains, any pair of primal and dual optimal points must satisfy
-the KKT conditions.
-    \item Consequently, if we can find points that satisfy the KKT conditions, we have found optimal primal and dual points with zero duality gap.
-    \item The KKT conditions are necessary for optimality in convex problems with strong duality, and they are also sufficient.
-\end{itemize}
+\textbf{Conclusion:} For convex problems with strong duality, KKT conditions are necessary and sufficient for optimality. Finding a point that satisfies them means we found the global optimum.
 
 \newpage
