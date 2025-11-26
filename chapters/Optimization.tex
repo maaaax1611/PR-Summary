@@ -41,7 +41,7 @@ The iterations terminate, if
 for some small threshold \(\varepsilon > 0\). This means that there is not furher significant change in the variable values, indicating convergence to a solution.
 Some common iterative optimization methods will be discussed below.
 
-\subsection{Descent Methods}
+\subsubsection{Descent Methods}
 The basic idea of descent methods is to iteratively take small steps $\Delta \vec{x}^{(k)}$ in the direction of \textbf{steepest descent} (i.e., the negative gradient) to minimize the function value:
 \begin{equation}
     \vec{x}^{(k+1)} = \vec{x}^{(k)} + t^{(k)} \Delta \vec{x}^{(k)}
@@ -76,7 +76,7 @@ You can basically see this as a function $F(\vec{x}^{(k)}) + t^{(k)} \Delta \vec
 \end{figure}
 A common method for line search is \textbf{backtracking line search (Armijo-Goldstein Algorithm)}, which starts with an initial step size and iteratively reduces it until a sufficient decrease in the function value is observed.
 
-\subsection{Gradient Descent}
+\subsubsection{Gradient Descent}
 A natutral choice for the search direction is the negative gradient of the function at the current point:
 \begin{equation}
     x^{(k+1)} = x^{(k)} - t^{(k)} \nabla f(x^{(k)})
@@ -103,7 +103,7 @@ You can use either a fixed step size or perform a line search to determine the o
 \textbf{Output:} $\mathbf{x}^{(k)}$
 
 
-\subsection{Normalized Steepest Descent}
+\subsubsection{Normalized Steepest Descent}
 In normalilzed steepest descent, the search direction is given by the following optimization problem:
 \begin{equation}
     \Delta \vec{x} = \arg\min_{u} \nabla f(\vec{x})^T \vec{u} \quad \text{s.t.} \quad \|\vec{u}\| = 1
@@ -189,7 +189,7 @@ Just like in LDA, where we transform the feature space to make the class distrib
     \item If $\mathbf{P} = \nabla^2 f(\vec{x})$ (Hessian): Newton's Method (accounts for local curvature).
 \end{itemize}
 
-\subsection{Newton's Method}
+\subsubsection{Newton's Method}
 Newton's method uses second-order information (the Hessian matrix) to find the search direction.
 It uses the second-order Taylor polynomial to approximate the function $f(x)$ at the current point $x^{(k)}$ and finds the minimum of this approximation.
 The minimum is the new point $x^{(k+1)}$.
@@ -211,6 +211,72 @@ To find the minimum of this approximation, we set the gradient with respect to $
 \textbf{Note:} Have a look at the steepest descent method using the \textbf{$\text{L}_\text{P}$}-norm. 
 When $P$ is the Hessian matrix ($\mathbf{P} = \nabla^2 f(\vec{x})$), we get the same search direction as in Newton's method.
 
+\newpage
+\subsection{Constrained Optimization}
+We consider the primal optimization problem:
+\begin{align*}
+    \text{minimize} \quad & f_0(\mathbf{x}) \\
+    \text{subject to} \quad & f_i(\mathbf{x}) \leq 0, \quad i = 1, 2, \dots, m \\
+    & h_i(\mathbf{x}) = 0, \quad i = 1, 2, \dots, p
+\end{align*}
+\textbf{Note:} $f_0(\vec{x})$ is not required to be convex!
 
+To optimize a function with constraints we have to use Lagrange-Multipliers.
+The Lagrangian $L$ is defined as:
+\begin{equation}
+    L(\vec{x}, \vec{\lambda}, \vec{\nu}) = f_0(\vec{x}) + \underbrace{\sum_{i=1}^m \lambda_i f_i(\vec{x})}_{\text{sum over all inequality constraints}} + \underbrace{\sum_{i=1}^p \nu_i h_i(\vec{x})}_{\text{sum over all equality constraints}}
+\end{equation}
+We add the constraints and weight them with multipliers $\lambda, \nu$ (Langrange multipliers or simply dual variables).
+The optimization problem can then be reformulated using the \textbf{Lagrange dual function}:
+\begin{align*}
+    g(\vec{\lambda}, \vec{\nu}) &= \inf_{\vec{x}} L(\vec{x}, \vec{\lambda}, \vec{\nu}) \\
+    &= \inf_{\vec{x}} \left( f_0(\vec{x}) + \sum_{i=1}^m \lambda_i f_i(\vec{x}) + \sum_{i=1}^p \nu_i h_i(\vec{x}) \right)
+\end{align*}
+\begin{summarybox}{Definition: Infimum ($\inf$)}
+    The \textbf{infimum} is the greatest lower bound of a set. Unlike the minimum, it exists even for open sets (e.g., for the set $\{x \in \mathbb{R} \mid x > 0\}$, the minimum does not exist, but the infimum is 0).
+\end{summarybox}
+\textbf{Important Properties:}
+\begin{itemize}
+    \item The Lagrange dual function is always \textbf{concave}, even if the original primal problem is not convex!
+    \item \textbf{Pointwise Affine:} The dual function is a pointwise affine function in the dual variables.
+    \begin{itemize}
+        \item \textit{Explanation:} If we fix $\vec{x}$, the Lagrangian $L(\vec{x}, \vec{\lambda}, \vec{\nu})$ becomes just a linear equation in terms of $\vec{\lambda}$ and $\vec{\nu}$ (like $a + b\lambda + c\nu$). It describes a flat plane.
+    \end{itemize}
+    \item It provides a \textbf{lower bound} on the optimal value $p^*$ of the primal problem. For any $\vec{\lambda} \succeq 0$ and any $\vec{\nu}$, the following holds:
+    \begin{equation}
+        g(\vec{\lambda}, \vec{\nu}) \leq p^*
+    \end{equation}
+\end{itemize}
+This leads us to the \textbf{Lagrange Dual Problem}, where we try to find the best (highest) lower bound:
+\begin{align*}
+    \text{maximize} \quad & g(\vec{\lambda}, \vec{\nu}) \\
+    \text{subject to} \quad & \vec{\lambda} \succeq 0
+\end{align*}
 
+\begin{summarybox}{Optimal Duality Gap}
+    Let $p^*$ be the optimal value of the primal problem and $d^*$ the optimal value of the Lagrange dual problem.
+
+    \begin{itemize}
+        \item The difference $p^* - d^*$ is the \textbf{optimal duality gap}.
+        \item If $p^* = d^*$, the duality gap is zero. In this case we talk about \textbf{strong duality}.
+        \item If $p^* > d^*$, we have \textbf{weak duality}.
+    \end{itemize}
+\end{summarybox}
+
+The duality gap is always zero when \textbf{Slater's Condition} is fulfilled:
+\begin{summarybox}{Theorem: Slater's Condition}
+    For a \textbf{convex} optimization problem, strong duality ($p^* = d^*$) holds if there exists a strictly feasible point $\mathbf{x}$ such that:
+    \begin{equation}
+        f_i(\mathbf{x}) < 0 \quad \forall i=1,\dots,m \quad \text{and} \quad A\mathbf{x} = \mathbf{b}
+    \end{equation}
+\end{summarybox}
+\textbf{Intuition:}
+To guarantee strong duality, we need at least one "strictly feasible" point.
+\begin{itemize}
+    \item It must lie \textbf{strictly inside} the inequality constraints ($f_i(\mathbf{x}) < 0$), meaning it does not touch these boundaries.
+    \item At the same time, it must \textbf{exactly satisfy} the linear equality constraints ($A\mathbf{x} = \mathbf{b}$).
+\end{itemize}
+In simple terms: You need a point that walks exactly on the required path ($A\mathbf{x}=\mathbf{b}$) without touching the walls of the feasible region ($f_i(\mathbf{x}) < 0$).
+
+If $\vec{x}$ is a primal optimal point and $\vec{\lambad}^*, \vec{\ni}^*$ are dual optimal points with a zero 
 \newpage
