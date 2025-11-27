@@ -91,17 +91,57 @@ The choice of the kernel function $k$ determines the type of non-linear decision
 \textbf{Result:} By choosing different kernel functions, we can learn a variety of non-linear decision boundaries without explicitly computing the feature transformation $\phi$.
 
 \subsection{Kernel PCA}
-Standard PCA finds eigenvectors of the covariance matrix $\Sigma$. In Kernel PCA, we cannot compute $\Sigma$ in the high-dimensional space. Instead, we solve the eigenvalue problem for the \textbf{Kernel Matrix} $K$:
-\begin{equation}
-    K \vec{\alpha}_i = m \lambda_i \vec{\alpha}_i
-\end{equation}
-where $m$ is the number of samples. The principal components are linear combinations of the transformed features.
+Standard PCA finds principal components by diagonalizing the covariance matrix $\Sigma$. In Kernel PCA, we perform PCA in the feature space defined by $\phi$.
+This allows us to capture non-linear structures in the data.
+Also the computatuional 
 
-\textbf{Projection:} The projection of a new point $\vec{x}$ onto the $i$-th eigenvector is:
+\subsubsection{PCA Revisited}
+The covariance matrix in feature space is (assuming zero mean):
 \begin{equation}
-    c = \sum_{k=1}^m \alpha_{i,k} k(\vec{x}, \vec{x}_k)
+    \Sigma = \frac{1}{m} \sum_{j=1}^m \phi(\vec{x}_j) \phi(\vec{x}_j)^T
 \end{equation}
-\textit{Note:} The kernel matrix must be centered in the feature space ($\tilde{K}$) before computing eigenvectors[cite: 5491].
+We solve the eigenvalue problem: $\Sigma \vec{e}_i = \lambda_i \vec{e}_i$.
+
+\subsubsection{Rewriting the Eigenvalue Problem}
+The eigenvectors $\vec{e}_i$ lie in the span of the feature vectors and can therefore be expressed as a linear combination of feature vectors:
+\begin{equation}
+    \vec{e}_i = \sum_{k=1}^m \alpha_{i,k} \vec{x}_k
+\end{equation}
+Substituting this into the eigenvalue equation:
+\begin{equation}
+    \left( \frac{1}{m} \sum_{j=1}^m \vec{x}_j \vec{x}_j^T \right) \cdot \sum_{k} \alpha_{i,k} \vec{x}_k = \lambda_i \sum_{k} \alpha_{i,k} \vec{x}_k
+\end{equation}
+To introduce the kernel, we multiply from the left by $\vec{x}_l^T$ for all $l$:
+\begin{equation}
+    \sum_{j,k} \alpha_{i,k} \underbrace{\vec{x}_l^T \vec{x}_j}_{k(\vec{x}_l, \vec{x}_j)} \underbrace{\vec{x}_j^T \vec{x}_k}_{k(\vec{x}_j, \vec{x}_k)} = m \lambda_i \sum_{k} \alpha_{i,k} \underbrace{\vec{x}_l^T \vec{x}_k}_{k(\vec{x}_l, \vec{x}_k)}
+\end{equation}
+
+Since all feature vectors only appear in the form of inner products, we can replace them with the kernel function $k$:
+\begin{summarybox}{Kernel PCA Equation}
+    \begin{equation}
+        \sum_{j,k} \alpha_{i,k} k(\vec{x}_l, \vec{x}_j) k(\vec{x}_j, \vec{x}_k) = m \lambda_i \sum_{k} \alpha_{i,k} k(\vec{x}_l, \vec{x}_k)
+    \end{equation}
+    In matrix notation using the Kernel Matrix $K$:
+    \begin{equation}
+        K^2 \vec{\alpha}_i = m \lambda_i K \vec{\alpha}_i
+    \end{equation}
+    This implies:
+    \begin{equation}
+        K \vec{\alpha}_i = m \lambda_i \vec{\alpha}_i
+    \end{equation}
+    So now we only need to solve the eigenvalue problem for the kernel matrix $K$!
+\end{summarybox}
+
+\subsubsection{Projection and Centering}
+\begin{itemize}
+    \item \textbf{Computation:} We solve the eigenvalue problem for the ($m \times m$) kernel matrix $K$.
+    \item \textbf{Projection:} The projection $c$ of a transformed feature vector $\phi(\vec{x})$ onto the principal component $\vec{e}_i$ is easily computed by:
+    \begin{equation}
+        c = \phi(\vec{x})^T \vec{e}_i = \sum_{k} \alpha_{i,k} k(\vec{x}, \vec{x}_k)
+    \end{equation}
+    \item \textbf{Centering:} It is assumed that transformed features have zero mean. This is enforced by centering the kernel matrix:
+    \[ \tilde{K}_{i,j} = \tilde{\phi}(\vec{x}_i)^T \tilde{\phi}(\vec{x}_j) = K_{i,j} - \frac{1}{m}\sum_k K_{i,k} - \frac{1}{m}\sum_k K_{k,j} - \frac{1}{m}\sum_k K_{k,l} \]
+\end{itemize}
 
 \subsection{Kernels for Sequences}
 Kernels allow us to apply SVMs/PCA to non-vectorial data like text or speech.
