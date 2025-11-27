@@ -1,4 +1,5 @@
 \section{Support Vector Machines (SVM)}
+\label{SVM}
 Just like other classifiers (Neural Nets, Nearest Neighbor, etc.), the goal of SVMs is to draw a linear line (decision boundary) to separate classes. But instead of drawing any sufficient line to separate the classes, SVMs aim to find a unique decision boundary that \textbf{maximizes the margin (distance)} between each class. The solution to this problem is unique and depends only on the features that are close to the decision boundary.
  
  \subsection{Hard Margin Problems}
@@ -124,6 +125,7 @@ Once we have solved the Dual Problem and found the optimal Lagrange multipliers 
 
 This is answered by the \textbf{Complementary Slackness} condition (KKT condition 3):
 \begin{equation}
+    \label{svm_dual_final}
     \lambda_i \cdot \underbrace{(y_i \cdot (\vec{\alpha}^T \vec{x}_i + \alpha_0) - 1)}_{f_i(\vec{\alpha}, \alpha_0)} = 0
 \end{equation}
 
@@ -149,6 +151,7 @@ We can now write the classification function for a new point $\vec{u}$ purely in
     f(\vec{u}) = \vec{\alpha}^T \vec{u} + \alpha_0 
     = \underbrace{\left( \sum_{i=1}^m \lambda_i y_i \vec{x}_i \right)^T}_{\vec{\alpha}^T} \vec{u} + \alpha_0 
     = \sum_{i=1}^m \lambda_i y_i (\vec{x}_i^T \vec{u}) + \alpha_0
+    \label{SVM_decision_rule_final}
 \end{equation}
 This form is crucial because it allows us to apply the \textbf{Kernel Trick} in the next section.
 
@@ -212,3 +215,7 @@ Using kernel functions, we avoid modeling the transformation $\Phi(\vec{x})$ exp
     \end{equation}
     \item \textbf{Sigmoid:} $k(\vec{x}, \vec{x}') = \tanh(a \vec{x}^T \vec{x}' + b)$
 \end{itemize}
+
+
+
+\newpage

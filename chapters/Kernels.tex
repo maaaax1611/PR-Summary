@@ -1,0 +1,118 @@
+\section{Kernels \& Kernel Methods}
+
+\subsection{Feature Transforms}
+\label{feature_transforms}
+Linear decision boundaries have limitations (cannot classify non-linearly separable data).\\
+\textbf{Solution:} Map data into a higher-dimensional feature space using a non-linear transformation $\phi: \mathbb{R}^d \to \mathbb{R}^D$ ($D \ge d$).
+
+\textbf{Example:} Mapping 2D data to 2D (squaring):
+\begin{equation}
+    \phi(\vec{x}) = (x_1^2, x_2^2)^T
+\end{equation}
+
+\begin{figure}[!ht]
+    \centering
+    % Achte darauf, dass der Pfad stimmt (images/...)
+    \includegraphics[width=\textwidth]{FeatureTransforms_square.PNG}
+    \caption{Feature transform: squaring each coordinate}
+    \label{fig:feature_transform_square}
+\end{figure}
+
+
+Data that forms a circle in the original space becomes linearly separable in the transformed space.
+
+\textbf{Property:} Distances in the transformed space can be computed using only inner products:
+\begin{align}
+    \|\phi(\vec{x}) - \phi(\vec{x}')\|_2^2 &= \langle (\phi(\vec{x}) - \phi(\vec{x}')), (\phi(\vec{x}) - \phi(\vec{x}')) \rangle \\
+    &= \langle \phi(\vec{x}), \phi(\vec{x}) \rangle - 2\langle \phi(\vec{x}), \phi(\vec{x}') \rangle + \langle \phi(\vec{x}'), \phi(\vec{x}') \rangle
+\end{align}
+This observation leads us to Kernel Functions.
+
+\subsection{Kernel Functions \& The Kernel Trick}
+\begin{summarybox}{Definition: Kernel Function}
+    A kernel function $k: \mathcal{X} \times \mathcal{X} \to \mathbb{R}$ is a symmetric function that maps a pair of features to a real number. It corresponds to an inner product in some feature space:
+    \begin{equation}
+        k(\vec{x}, \vec{x}') = \langle \phi(\vec{x}), \phi(\vec{x}') \rangle
+    \end{equation}
+\end{summarybox}
+
+\textbf{The Kernel Trick:} In any algorithm formulated in terms of inner products (like SVM or PCA), we can replace the inner product with a kernel $k(\vec{x}, \vec{x}')$. This avoids the explicit (and expensive) computation of $\phi(\vec{x})$.
+
+\textbf{Mercer's Theorem:} For any positve semidefinite kernel function $k$, there exists a feature mapping $\phi$ such that $k(\vec{x}, \vec{x}') = \langle \phi(\vec{x}), \phi(\vec{x}') \rangle$ (kernel function is fully defined by inner products).
+
+\textbf{Typical Kernel Functions}
+\begin{itemize}
+    \item \textbf{Linear:} $k(\vec{x}, \vec{x}') = \langle \vec{x}, \vec{x}' \rangle$
+    \item \textbf{Polynomial:} $k(\vec{x}, \vec{x}') = (\langle \vec{x}, \vec{x}' \rangle + 1)^d$
+    \item \textbf{RBF (Radial Basis Function):} $k(\vec{x}, \vec{x}') = \exp\left(-\frac{\|\vec{x} - \vec{x}'\|^2}{\sigma^2}\right)$
+    \item \textbf{Sigmoid:} $k(\vec{x}, \vec{x}') = \tanh(\alpha \langle \vec{x}, \vec{x}' \rangle + \beta)$
+\end{itemize}
+
+\textbf{Kernel Matrix}
+\begin{summarybox}{Definition: Kernel Matrix}
+    For a given set of feature vectors $\vec{x}_1, \vec{x}_2, \dots, \vec{x}_m$, we define the \textbf{Kernel Matrix} $K \in \mathbb{R}^{m \times m}$ as:
+    \begin{equation}
+        K_{i,j} = k(\vec{x}_i, \vec{x}_j) = \langle \phi(\vec{x}_i), \phi(\vec{x}_j) \rangle
+    \end{equation}
+\end{summarybox}
+
+\textbf{Important Properties:}
+\begin{itemize}
+    \item The entries of the matrix can be interpreted as \textbf{similarity measures} between the feature pairs (because the inner product (german: Skalarprodukt) measures similarity).
+    \item The kernel matrix is always \textbf{positive semidefinite} ($K \succeq 0$). This is a necessary condition for a function to be a valid kernel (Mercer's Theorem).
+\end{itemize}
+
+\subsection{Kernel SVM}
+In chapter \ref{SVM}, we saw, that standard SVMs can only learn linear decision boundaries.
+By applying the kernel trick, we can extend SVMs to learn non-linear decision boundaries.
+Since the decision rule \ref{SVM_decision_rule_final} and the dual optimization \ref{svm_dual_final} problem depend only on inner products, we can replace them with kernel functions.
+The decision rule becomes:
+\begin{equation}
+    f(\vec{u}) = \sum_{i=1}^m \lambda_i y_i k(\vec{x}_i, \vec{u}) + \alpha_0
+\end{equation}
+The dual optimization problem becomes:
+\begin{equation}
+    \max_{\vec{\lambda}} \sum_{i=1}^m \lambda_i - \frac{1}{2} \sum_{i=1}^m \sum_{j=1}^m \lambda_i \lambda_j y_i y_j k(\vec{x}_i, \vec{x}_j)
+\end{equation}
+The choice of the kernel function $k$ determines the type of non-linear decision boundary that can be learned.
+\begin{figure}[h!]
+    \centering
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \includegraphics[width=0.8\linewidth]{Kernel_SVM_poly.PNG}
+        \caption{Polynomial Kernel Decision Boundary}
+    \end{minipage}\hfill
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \includegraphics[width=0.8\linewidth]{Kernel_SVM_gauss.PNG}
+        \caption{RBF (Gaussian) Kernel Decision Boundary}
+    \end{minipage}
+\end{figure}
+\textbf{Result:} By choosing different kernel functions, we can learn a variety of non-linear decision boundaries without explicitly computing the feature transformation $\phi$.
+
+\subsection{Kernel PCA}
+Standard PCA finds eigenvectors of the covariance matrix $\Sigma$. In Kernel PCA, we cannot compute $\Sigma$ in the high-dimensional space. Instead, we solve the eigenvalue problem for the \textbf{Kernel Matrix} $K$:
+\begin{equation}
+    K \vec{\alpha}_i = m \lambda_i \vec{\alpha}_i
+\end{equation}
+where $m$ is the number of samples. The principal components are linear combinations of the transformed features.
+
+\textbf{Projection:} The projection of a new point $\vec{x}$ onto the $i$-th eigenvector is:
+\begin{equation}
+    c = \sum_{k=1}^m \alpha_{i,k} k(\vec{x}, \vec{x}_k)
+\end{equation}
+\textit{Note:} The kernel matrix must be centered in the feature space ($\tilde{K}$) before computing eigenvectors[cite: 5491].
+
+\subsection{Kernels for Sequences}
+Kernels allow us to apply SVMs/PCA to non-vectorial data like text or speech.
+\begin{itemize}
+    \item \textbf{String Kernels / DTW:} Based on Dynamic Time Warping distance $D$.
+    \begin{equation}
+        k(\vec{x}, \vec{y}) = \exp(-D(\vec{x}, \vec{y}))
+    \end{equation}
+    \item \textbf{Fisher Kernels:} Combine generative models (e.g., HMMs) with discriminative classifiers.
+    \begin{equation}
+        k(\vec{x}, \vec{x}') = \mathbf{J}_{\theta}(\vec{x})^T \mathbf{I}^{-1} \mathbf{J}_{\theta}(\vec{x}')
+    \end{equation}
+    where $\mathbf{J}_{\theta}$ is the Fisher Score (gradient of log-likelihood) and $\mathbf{I}$ is the Fisher Information Matrix[cite: 5626].
+\end{itemize}
