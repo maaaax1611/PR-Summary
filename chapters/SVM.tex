@@ -73,7 +73,7 @@ The Soft Margin SVM relaxes the hard margin constraints by allowing some points 
     \label{fig:SVM_soft}
 \end{figure}
 
-Therefore, we introduce slack variables $\xi_i \geq 0$ for each training sample $x_i$, which measure the degree of misclassification:
+Therefore, we introduce slack variables $\xi_i \geq 0$ for each training sample $x_i$, which measure the degree of misclassification (\textbf{Hinge Loss}):
 \begin{itemize}
     \item $\xi_i = 0$: point is correctly classified and outside or on the margin
     \item $0 < \xi_i \leq 1$: point is inside the margin but still correctly classified
@@ -90,3 +90,125 @@ The primal optimization problem becomes:
     \end{equation*}
 \end{summarybox}
 where $\mu > 0$ is a hyperparameter that controls the trade-off between maximizing the margin and minimizing the classification error.
+
+\subsection{Dual Representation}
+The primal problem minimizes with respect to $\vec{\alpha}$ and $\alpha_0$. However, solving the \textbf{Lagrange Dual Problem} is often more powerful. It reveals that the solution depends \textit{only} on the inner products of the data points, which is the key to the Kernel Trick.
+
+\subsubsection{Derivation from the Lagrangian}
+For simplicity, we derive the dual only for the hard margin case here.
+In the soft margin case, the derivation is similar but includes additional terms for the slack variables.
+We start with the Lagrangian of the hard margin problem (using multipliers $\lambda_i \ge 0$):
+\begin{equation}
+    L(\vec{\alpha}, \alpha_0, \vec{\lambda}) = \underbrace{\frac{1}{2} \|\vec{\alpha}\|_2^2}_\text{primal problem $f_0(x)$} - \underbrace{\sum_{i=1}^m \lambda_i [y_i (\vec{\alpha}^T \vec{x}_i + \alpha_0) - 1]}_\text{constraints $f_i(x)$}
+\end{equation}
+To find the dual, we minimize $L$ with respect to the primal variables $\vec{\alpha}$ and $\alpha_0$ (setting gradients to zero):
+
+\begin{align}
+    \nabla_{\vec{\alpha}} L &= \vec{\alpha} - \sum_{i=1}^m \lambda_i y_i \vec{x}_i = 0 \quad \Rightarrow \quad \mathbf{\vec{\alpha} = \sum_{i=1}^m \lambda_i y_i \vec{x}_i} \label{eq:dual_alpha} \\
+    \frac{\partial L}{\partial \alpha_0} &= - \sum_{i=1}^m \lambda_i y_i = 0 \quad \Rightarrow \quad \sum_{i=1}^m \lambda_i y_i = 0
+\end{align}
+
+Substituting (\ref{eq:dual_alpha}) back into the Lagrangian eliminates $\vec{\alpha}$ and yields the \textbf{Dual Objective Function}, which depends only on $\vec{\lambda}$:
+
+\begin{summarybox}{Dual Optimization Problem}
+    \begin{equation*}
+        \text{maximize } \quad \sum_{i=1}^m \lambda_i - \frac{1}{2} \sum_{i=1}^m \sum_{j=1}^m \lambda_i \lambda_j y_i y_j (\vec{x}_i^T \vec{x}_j)
+    \label{dL/dalpha}
+    \end{equation*}
+    \textbf{Subject to:}
+    \[ \lambda_i \geq 0 \quad \forall i, \quad \text{and} \quad \sum_{i=1}^m \lambda_i y_i = 0 \]
+\end{summarybox}
+
+\subsubsection{From Dual Variables to the Decision Boundary}
+Once we have solved the Dual Problem and found the optimal Lagrange multipliers $\lambda_i^*$, we need to reconstruct the decision boundary. But which $\lambda_i$ are actually relevant?
+
+This is answered by the \textbf{Complementary Slackness} condition (KKT condition 3):
+\begin{equation}
+    \lambda_i \cdot \underbrace{(y_i \cdot (\vec{\alpha}^T \vec{x}_i + \alpha_0) - 1)}_{f_i(\vec{\alpha}, \alpha_0)} = 0
+\end{equation}
+
+Since the product must be zero, we have two cases for every data point $i$:
+\begin{itemize}
+    \item \textbf{Case 1:} $\lambda_i = 0$. The point is correctly classified and lies somewhere "safe" (not on the margin). These points effectively vanish from our solution.
+    \item \textbf{Case 2:} $\lambda_i > 0$. Then the bracket term \textit{must} be zero:
+    \begin{equation}
+        y_i (\vec{\alpha}^T \vec{x}_i + \alpha_0) = 1
+    \end{equation}
+    These points lie exactly on the margin boundaries. We call them \textbf{Support Vectors}.
+\end{itemize}
+
+\textbf{Conclusion 1 (Sparsity):}
+The weight vector $\vec{\alpha}$ (see \ref{dL/dalpha}) depends \textit{only} on the support vectors (where $\lambda_i > 0$):
+\begin{equation}
+    \vec{\alpha} = \sum_{i=1}^m \lambda_i y_i \vec{x}_i = \sum_{i \in SV} \lambda_i y_i \vec{x}_i
+\end{equation}
+
+\textbf{Conclusion 2 (The Decision Rule):}
+We can now write the classification function for a new point $\vec{u}$ purely in terms of training samples and their inner products:
+\begin{equation}
+    f(\vec{u}) = \vec{\alpha}^T \vec{u} + \alpha_0 
+    = \underbrace{\left( \sum_{i=1}^m \lambda_i y_i \vec{x}_i \right)^T}_{\vec{\alpha}^T} \vec{u} + \alpha_0 
+    = \sum_{i=1}^m \lambda_i y_i (\vec{x}_i^T \vec{u}) + \alpha_0
+\end{equation}
+This form is crucial because it allows us to apply the \textbf{Kernel Trick} in the next section.
+
+\subsection{Feature Transform \& The Kernel Trick}
+
+Both hard and soft margin SVMs can only generate a \textbf{linear decision boundary}. This has serious limitations:
+\begin{itemize}
+    \item Non-linearly separable data cannot be classified.
+    \item Noisy data can cause problems.
+    \item The formulation deals with vectorial data only.
+\end{itemize}
+
+\subsubsection{Mapping to a Higher Dimensional Space}
+To solve this, we map the data into a richer, higher-dimensional feature space using a non-linear transformation $\Phi$:
+\begin{equation}
+    \Phi : \mathbb{R}^d \to \mathbb{R}^D \quad (D \gg d)
+\end{equation}
+such that the features $\Phi(\vec{x}_i)$ become linearly separable in that new space.
+
+\textbf{Example (Quadratic Decision Boundary):}
+Assume a 2D decision boundary defined by a quadratic function:
+\[ f(\vec{x}) = \alpha_0 + \alpha_1 x_1^2 + \alpha_2 x_2^2 + \alpha_3 x_1 x_2 + \alpha_4 x_1 + \alpha_5 x_2 \]
+This is non-linear in the original space $\vec{x} = (x_1, x_2)^T$. However, we can define a transformation $\Phi(\vec{x})$:
+\begin{equation}
+    \Phi(\vec{x}) = (1, x_1^2, x_2^2, x_1 x_2, x_1, x_2)^T
+\end{equation}
+Now, the decision function becomes linear in the transformed space: $f(\vec{x}) = \vec{\alpha}^T \Phi(\vec{x})$.
+
+\subsubsection{Applying the Transform to the Dual Problem}
+Because we reformulated the SVM into its \textbf{Dual Representation}, we don't need to explicitly calculate the weight vector $\vec{\alpha}$ in the high-dimensional space.
+The decision boundary can be rewritten using inner products of the transformed features:
+\begin{equation}
+    f(\vec{x}) = \sum_{i=1}^m \lambda_i y_i \langle \Phi(\vec{x}_i), \Phi(\vec{x}) \rangle + \alpha_0
+\end{equation}
+
+The optimization problem changes accordingly:
+\begin{summarybox}{Dual Optimization with Feature Transform}
+    \begin{equation*}
+        \text{maximize } \quad -\frac{1}{2} \sum_{i} \sum_{j} \lambda_i \lambda_j y_i y_j \langle \Phi(\vec{x}_i), \Phi(\vec{x}_j) \rangle + \sum_{i} \lambda_i
+    \end{equation*}
+    $\text{subject to } \quad \vec{\lambda} \succeq 0, \quad \sum \lambda_i y_i = 0$
+\end{summarybox}
+Now we have a linear decision boundary in a higher dimensional space!
+
+\subsubsection{Kernel Functions}
+Computing the explicit transformation $\Phi(\vec{x})$ can be computationally very expensive (or even impossible for infinite dimensions). However, since the algorithm \textbf{only depends on the inner product}, we can abstract this using a \textbf{Kernel Function}:
+
+\begin{equation}
+    k(\vec{x}, \vec{x}') = \langle \Phi(\vec{x}), \Phi(\vec{x}') \rangle
+\end{equation}
+
+Using kernel functions, we avoid modeling the transformation $\Phi(\vec{x})$ explicitly but still get the same result.
+
+\textbf{Typical Kernel Functions:}
+\begin{itemize}
+    \item \textbf{Linear:} $k(\vec{x}, \vec{x}') = \langle \vec{x}, \vec{x}' \rangle$
+    \item \textbf{Polynomial:} $k(\vec{x}, \vec{x}') = (\langle \vec{x}, \vec{x}' \rangle + 1)^d$ (The example above corresponds to $d=2$)
+    \item     \item \textbf{Radial Basis Function (RBF) / Gaussian:} 
+    \begin{equation}
+        k(\vec{x}, \vec{x}') = \exp\left(-\frac{\|\vec{x} - \vec{x}'\|^2}{2\sigma^2}\right)
+    \end{equation}
+    \item \textbf{Sigmoid:} $k(\vec{x}, \vec{x}') = \tanh(a \vec{x}^T \vec{x}' + b)$
+\end{itemize}
