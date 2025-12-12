@@ -98,7 +98,7 @@ Also the computatuional
 \subsubsection{PCA Revisited}
 The covariance matrix in feature space is (assuming zero mean):
 \begin{equation}
-    \Sigma = \frac{1}{m} \sum_{j=1}^m \phi(\vec{x}_j) \phi(\vec{x}_j)^T
+    \Sigma = \frac{1}{m} \sum_{i=1}^m \vec{x}_i \vec{x}_i^T
 \end{equation}
 We solve the eigenvalue problem: $\Sigma \vec{e}_i = \lambda_i \vec{e}_i$.
 
@@ -154,5 +154,10 @@ Kernels allow us to apply SVMs/PCA to non-vectorial data like text or speech.
     \begin{equation}
         k(\vec{x}, \vec{x}') = \mathbf{J}_{\theta}(\vec{x})^T \mathbf{I}^{-1} \mathbf{J}_{\theta}(\vec{x}')
     \end{equation}
-    where $\mathbf{J}_{\theta}$ is the Fisher Score (gradient of log-likelihood) and $\mathbf{I}$ is the Fisher Information Matrix[cite: 5626].
+    where $\mathbf{J}_{\theta}$ is the Fisher Score (gradient of log-likelihood) and $\mathbf{I}$ is the Fisher Information Matrix.
 \end{itemize}
+
+\subsection{Laplacian SVM}
+
+
+\newpage

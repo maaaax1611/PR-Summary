@@ -1,0 +1,160 @@
+\section{Independent Component Analysis (ICA)}
+\label{sec:ica}
+
+While Principal Component Analysis (PCA) and Whitening rely on second-order statistics (covariance) to decorrelate data, Independent Component Analysis (ICA) goes a step further. It aims to recover latent variables that are not only uncorrelated but statistically \textbf{independent}.
+
+\subsection{The Cocktail-Party Problem}
+The classic motivating example for ICA is the "Cocktail-Party Problem". Imagine a room with two speakers ($s_1(t), s_2(t)$) and two microphones at different locations. The microphones record time signals $x_1(t)$ and $x_2(t)$.
+Since sound travels linearly, the recorded signals are weighted sums of the original sources:
+\begin{equation}
+    \begin{aligned}
+        x_1(t) &= a_{11}s_1(t) + a_{12}s_2(t) \\
+        x_2(t) &= a_{21}s_1(t) + a_{22}s_2(t)
+    \end{aligned}
+\end{equation}
+Here, the coefficients $a_{ij}$ depend on the distances between microphones and speakers. The goal of ICA is to recover the original sources $s(t)$ using only the observations $x(t)$, without knowing the mixing parameters $a_{ij}$ or the source distributions.
+
+\subsection{Latent Variable Model}
+We formalize this using a statistical latent variables model. We observe a random vector $\vec{x} \in \mathbb{R}^n$ which is a linear mixture of $n$ independent latent components $\vec{s} \in \mathbb{R}^n$:
+\begin{equation}
+    \vec{x} = A \vec{s}
+\end{equation}
+where $A \in \mathbb{R}^{n \times n}$ is the constant, unknown \textbf{mixing matrix}.
+The optimization task is to estimate both the mixing matrix $A$ and the realizations of the latent variables $\vec{s}$.
+
+\begin{summarybox}{Assumptions of ICA}
+    To ensure the model is solvable, we make the following assumptions:
+    \begin{enumerate}
+        \item The components $s_i$ are statistically independent.
+        \item The components $s_i$ must have \textbf{non-Gaussian} distributions (except for at most one component).
+        \item The mixing matrix $A$ is square and invertible (for the basic ICA model).
+    \end{enumerate}
+\end{summarybox}
+
+\subsubsection{Ambiguities}
+Since both $A$ and $\vec{s}$ are unknown, the model $\vec{x} = A\vec{s}$ has two inherent ambiguities that cannot be resolved without prior knowledge:
+\begin{enumerate}
+    \item \textbf{Scaling and Sign:} We cannot determine the variance of the independent components. A scalar factor $\alpha$ can be canceled out by dividing the corresponding column of $A$ by $\alpha$. Therefore, we usually restrict $\vec{s}$ to have unit variance ($E\{\vec{s}\vec{s}^T\} = I$). The sign is also undetermined.
+    \item \textbf{Ordering:} There is no natural order of the components. A permutation matrix $P$ can swap components in $\vec{s}$ while permuting columns in $A$ accordingly.
+\end{enumerate}
+
+\subsection{Why Decorrelation is Not Enough}
+In previous chapters, we used the Whitening Transform (based on PCA) to decorrelate data.
+For zero-mean data, the whitening transform is given by $\tilde{\vec{x}} = D^{-1/2}U^T \vec{x}$, where $E\{\vec{x}\vec{x}^T\} = U D U^T$.
+While whitening ensures that the variables are uncorrelated ($E\{\tilde{\vec{x}}\tilde{\vec{x}}^T\} = I$), it does not guarantee independence.
+
+\textbf{The Rotation Problem:}
+Whitening is only defined up to an orthogonal rotation. If $\tilde{\vec{x}}$ is white, then for any orthogonal matrix $R$, the vector $\hat{\vec{x}} = R\tilde{\vec{x}}$ is also white:
+\begin{equation}
+    E\{\hat{\vec{x}}\hat{\vec{x}}^T\} = R E\{\tilde{\vec{x}}\tilde{\vec{x}}^T\} R^T = R I R^T = I
+\end{equation}
+Since the Gaussian distribution is rotationally symmetric (determined fully by second-order moments), PCA cannot distinguish between the original axes and rotated axes for Gaussian data. This explains why ICA requires \textbf{non-Gaussian} data to identify the unique mixing matrix.
+
+\subsection{The Principle of Non-Gaussianity}
+To solve ICA, we use the Central Limit Theorem (CLT). The CLT states that the sum of independent random variables tends toward a Gaussian distribution.
+
+Consider a linear combination of the observed mixture variables $y = \vec{w}^T \vec{x}$. Substituting $\vec{x} = A\vec{s}$ and letting $\vec{z} = A^T \vec{w}$:
+\begin{equation}
+    y = \vec{w}^T A \vec{s} = \vec{z}^T \vec{s} = \sum_i z_i s_i
+\end{equation}
+This $y$ is a sum of independent components. According to the CLT, this sum is usually "more Gaussian" than the individual source components $s_i$. Conversely, $y$ is \textbf{least Gaussian} when it corresponds to exactly one of the independent components (i.e., when only one $z_i$ is non-zero).
+
+\begin{figure}[ht!]
+    \centering
+    % Original Signals (Left)
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{ICA_original_signals.PNG}
+        \caption{Original Signals: The scatter plot shows a square (independence). The histogram shows a uniform distribution, which is clearly non-Gaussian.}
+        \label{fig:ica_original_signals}
+    \end{minipage}
+    \hfill
+    % Mixed Signals (Right)
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{ICA_mixed_signals.PNG}
+        \caption{Mixed Signals: The scatter plot becomes a parallelogram (correlation). Due to the CLT, the histogram approaches a Gaussian bell curve.}
+        \label{fig:ica_mixed_signals}
+    \end{minipage}
+\end{figure}
+
+\textbf{Conclusion:} To find the independent components, we must find the weight vector $\vec{w}$ that \textbf{maximizes the non-Gaussianity} of $\vec{w}^T \vec{x}$.
+
+\subsection{Measures of Non-Gaussianity}
+\label{sec:non-gaussianity}
+To perform the maximization described above, we need quantitative measures of how non-Gaussian a distribution is. We assume the variable $y$ is centered and has unit variance.
+
+\subsubsection{Differential Entropy}
+The fundamental concept behind many measures of non-Gaussianity is \textbf{Entropy}. In information theory, entropy measures the uncertainty or randomness of a random variable. For a continuous random variable $Y$ with probability density function $p(y)$, the \textbf{Differential Entropy} $H(Y)$ is defined as:
+\begin{equation}
+    H(Y) = - \int p(y) \log p(y) \, dy
+\end{equation}
+A crucial theorem for ICA states that for a fixed variance, the \textbf{Gaussian distribution maximizes the entropy}. This means the Gaussian distribution is the "most random" or least structured distribution. Distributions that are "spiky" or "flat" (super- or sub-Gaussian) have lower entropy.\newline
+\textbf{Interpretation:} Entropy can also be interpreted as a measure of code length. $H(Y)$ relates to the average code length required to encode the variable.
+
+\subsubsection{Kurtosis}
+Kurtosis is the fourth-order cumulant. For a random variable $y$ with unit variance:
+\begin{equation}
+    \operatorname{kurt}(y) = E\{y^4\} - 3(E\{y^2\})^2 = E\{y^4\} - 3
+\end{equation}
+\begin{itemize}
+    \item For a Gaussian distribution, $\operatorname{kurt}(y) = 0$.
+    \item \textbf{Super-Gaussian} (spiky, e.g., Laplace): $\operatorname{kurt}(y) > 0$.
+    \item \textbf{Sub-Gaussian} (flat, e.g., Uniform): $\operatorname{kurt}(y) < 0$.
+\end{itemize}
+We optimize the absolute kurtosis $|\operatorname{kurt}(\vec{w}^T \vec{x})|$. While theoretically sound, kurtosis is sensitive to outliers because of the fourth power ($y^4$).
+
+\subsubsection{Negentropy}
+Entropy $H(y)$ measures randomness. A Gaussian variable has the largest entropy among all distributions with the same variance. Negentropy $J(y)$ is defined to measure the distance to normality:
+\begin{equation}
+    J(y) = H(y_{\text{Gauss}}) - H(y)
+\end{equation}
+where $y_{\text{Gauss}}$ is a Gaussian variable with the same covariance as $y$.
+$J(y)$ is always non-negative and zero only if $y$ is Gaussian.
+Unlike Kurtosis, Negentropy is statistically robust, though computing the entropy requires estimating the pdf, which is computationally difficult. In practice, approximations involving non-quadratic functions $G$ are used:
+\begin{equation}
+    J(y) \approx [E\{G(y)\} - E\{G(y_{\text{Gauss}})\}]^2
+\end{equation}
+
+\subsubsection{Mutual Information}
+Another approach is minimizing the Mutual Information (MI) between the estimated components. MI measures the statistical dependence between variables.
+\begin{equation}
+    \operatorname{MI}(\vec{y}) = \sum_{i=1}^n H(y_i) - H(\vec{y})
+\end{equation}
+For uncorrelated variables, minimizing Mutual Information is equivalent to maximizing the sum of Negentropies of the components.
+
+\newpage
+
+\subsection{ICA Estimation Algorithm}
+A standard algorithm (conceptually similar to FastICA) to estimate one independent component is:
+
+% \begin{enumerate}
+%     \item \textbf{Centering:} Center the data $\vec{x}$ to zero mean.
+%     \item \textbf{Whitening:} Apply whitening transform to obtain $\tilde{\vec{x}}$. This reduces the problem to finding an orthogonal matrix.
+%     \item \textbf{Initialization:} Choose a random initial weight vector $\vec{w}$ with $\|\vec{w}\| = 1$.
+%     \item \textbf{Optimization:} Maximize the non-Gaussianity of $\vec{w}^T \tilde{\vec{x}}$ (e.g., using Gradient Descent on Kurtosis or Negentropy).
+%     \item \textbf{Normalization:} Re-normalize $\vec{w}$ to unit norm after every step.
+%     \item \textbf{Deflation:} To find subsequent components, run the algorithm again but enforce orthogonality to previously found vectors ($\vec{w}_{new}^T \vec{w}_{old} = 0$).
+% \end{enumerate}
+
+\begin{algorithm}
+    \caption{Basic ICA Estimation Algorithm}
+    \label{alg:ica_estimation}
+    \begin{algorithmic}[1]
+        \State Apply centering transform
+        \State Apply whitening transform
+        \State $i \gets 1$
+        \Repeat
+            \State Take a random vector $\vec{w}_i$
+            \State Maximize non-Gaussianity of $\vec{w}_i^T \vec{x}$ subject to:
+            \State \quad $\|\vec{w}_i\| = 1$
+            \State \quad $\vec{w}_j^T \vec{w}_i = 0 , \quad \forall j < i$
+            \State $i \gets i + 1$
+        \Until{$i > n$} \Comment{$n$: number of independent components}
+        \State Use weight matrix: $W = (\vec{w}_1^T, \vec{w}_2^T, \dots, \vec{w}_n^T)$ to compute $\vec{s}$
+        \State \textbf{Output:} independent components $\vec{s}$
+    \end{algorithmic}
+\end{algorithm}
+To do this, you have to choose a measure of non-Gaussianity (as described in \ref{sec:non-gaussianity}).
+
+\newpage
