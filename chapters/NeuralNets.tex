@@ -1,0 +1,186 @@
+\section{Neural Networks: From Perceptron to MLP}
+
+\subsection{Rosenblatt's Perceptron}
+The Perceptron, introduced by Rosenblatt in 1957, is the fundamental building block of neural networks. It is a linear classifier designed to separate two classes.
+
+\subsubsection{The Linear Decision Boundary}
+We assume that the data is linearly separable and the class labels are $y \in \{+1, -1\}$. The decision rule is given by a linear function:
+\begin{equation}
+    y^* = \operatorname{sgn}(\vec{\alpha}^T \vec{x} + \alpha_0)
+\end{equation}
+where $\vec{\alpha}$ represents the normal vector of the separating hyperplane and $\alpha_0$ is the bias.
+
+\subsubsection{Objective Function}
+To find the optimal parameters $\vec{\alpha}$ and $\alpha_0$, we do not simply count the classification errors (which would lead to a discrete and non-differentiable step function). Instead, we minimize the distance of \textbf{misclassified} feature vectors to the decision boundary.
+
+Let $\mathcal{M}$ be the set of misclassified feature vectors. The perceptron criterion is defined as:
+\begin{equation}
+    D(\alpha_0, \vec{\alpha}) = - \sum_{\vec{x}_i \in \mathcal{M}} y_i (\vec{\alpha}^T \vec{x}_i + \alpha_0)
+\end{equation}
+If a point $\vec{x}_i$ is misclassified, the sign of $y_i$ differs from $(\vec{\alpha}^T \vec{x}_i + \alpha_0)$, making the term inside the sum negative. The minus sign ensures that the total sum $D$ is positive. We want to minimize this value.
+
+\begin{equation}
+    \min_{\alpha_0, \vec{\alpha}} D(\alpha_0, \vec{\alpha}) = - \sum_{\vec{x}_i \in \mathcal{M}} y_i (\vec{\alpha}^T \vec{x}_i + \alpha_0)
+\end{equation}
+
+\textbf{Optimization Challenges:}
+\begin{itemize}
+    \item The set $\mathcal{M}$ changes in every iteration step.
+    \item The cardinality $|\mathcal{M}|$ is a discrete variable, competing with the continuous parameters $\vec{\alpha}$.
+\end{itemize}
+
+\subsubsection{The Perceptron Learning Algorithm}
+To minimize the objective function, we use \textbf{Stochastic Gradient Descent}. The gradients are:
+\begin{equation}
+    \nabla_{\vec{\alpha}} D = - \sum_{\vec{x}_i \in \mathcal{M}} y_i \vec{x}_i, \quad \frac{\partial D}{\partial \alpha_0} = - \sum_{\vec{x}_i \in \mathcal{M}} y_i
+\end{equation}
+Since we update after every single misclassification (online learning), the update rule for the $(k+1)$-th step, given a misclassified sample $(\vec{x}_i, y_i)$, is:
+\begin{equation}
+    \begin{pmatrix} \alpha_0^{(k+1)} \\ \vec{\alpha}^{(k+1)} \end{pmatrix} = \begin{pmatrix} \alpha_0^{(k)} \\ \vec{\alpha}^{(k)} \end{pmatrix} + \lambda \begin{pmatrix} y_i \\ y_i \vec{x}_i \end{pmatrix}
+\end{equation}
+where $\lambda$ is the learning rate (usually set to 1).
+
+\begin{algorithm}
+    \caption{Perceptron Learning Algorithm}
+    \label{alg:perceptron_learning}
+    \begin{algorithmic}[1]
+        \State \textbf{Input:} Training data $S = \{(\vec{x}_1, y_1), \dots, (\vec{x}_m, y_m)\}$
+        \State \textbf{Initialize:} $k=0$, $\alpha_0^{(0)} = 0$, $\vec{\alpha}^{(0)} = \vec{0}$
+        \Repeat
+            \State Select a pair $(\vec{x}_i, y_i)$ from the training set $S$
+            \If{$y_i (\vec{\alpha}^{(k)T} \vec{x}_i + \alpha_0^{(k)}) \le 0$} \Comment{Misclassified}
+                \State $\vec{\alpha}^{(k+1)} \gets \vec{\alpha}^{(k)} + y_i \vec{x}_i$
+                \State $\alpha_0^{(k+1)} \gets \alpha_0^{(k)} + y_i$
+                \State $k \gets k+1$
+            \EndIf
+        \Until{all samples are correctly classified}
+        \State \textbf{Output:} $\vec{\alpha}^{(k)}$, $\alpha_0^{(k)}$
+    \end{algorithmic}
+\end{algorithm}
+
+\subsubsection{Convergence (Novikoff's Theorem)}
+If the data is linearly separable, the algorithm is guaranteed to converge.
+\begin{summarybox}{Theorem: Convergence of Rosenblatt's Perceptron}
+    Assume there exists an optimal solution $\vec{\alpha}^*$ (with $\|\vec{\alpha}^*\|=1$) and a margin $\rho > 0$ such that $y_i (\vec{\alpha}^{*T} \vec{x}_i + \alpha_0^*) \ge \rho$ for all samples. Let $M = \max_i \|\vec{x}_i\|_2$. The number of updates $k$ is bounded by:
+    \begin{equation}
+        k \le \frac{(\alpha_0^{*2} + 1)(1 + M^2)}{\rho^2}
+    \end{equation}
+\end{summarybox}
+\textbf{Proof Sketch:}
+The proof relies on two observations:
+\begin{enumerate}
+    \item The inner product between the current weight vector and the optimal solution grows linearly with each update ($(\vec{\alpha}^{(k)})^T \vec{\alpha}^* \ge k\rho$). This implies alignment.
+    \item The squared norm of the weight vector grows at most linearly ($\|\vec{\alpha}^{(k)}\|^2 \le k(1+M^2)$).
+    \item Combining these using the Cauchy-Schwarz inequality yields the upper bound.
+\end{enumerate}
+\textbf{Result:} The number of iterations does \textit{not} depend on the dimension of the feature space, but on the geometric margin $\rho$.
+
+\subsection{Multi-Layer Perceptrons (MLP)}
+Since the single Perceptron can only solve linearly separable problems, we extend the concept to Multi-Layer Perceptrons (MLPs).
+
+\subsubsection{Physiological Motivation \& Topology}
+The MLP is inspired by biological neural networks:
+\begin{itemize}
+    \item \textbf{Dendrites:} Input channels (feature vectors).
+    \item \textbf{Synapses:} Weights (strength of connection).
+    \item \textbf{Axon Hillock:} Summation and activation threshold.
+\end{itemize}
+An MLP consists of an \textbf{Input Layer}, one or more \textbf{Hidden Layers}, and an \textbf{Output Layer}.
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=\textwidth]{mlp_topology.png}
+    \caption{Structure of a Multi-Layer Perceptron (MLP)}
+    \label{fig:mlp_structure}
+\end{figure}
+
+\begin{itemize}
+    \item $w_{ij}^{(l)}$: Weight from neuron $i$ in layer $(l-1)$ to neuron $j$ in layer $(l)$.
+    \item $net_j^{(l)}$: The weighted sum input for neuron $j$ in layer $l$.
+    \item $y_j^{(l)}$: The output of neuron $j$ after applying the activation function.
+\end{itemize}
+
+\subsubsection{Activation Functions}
+To introduce non-linearity, we apply an activation function $f(\cdot)$ to the net input:
+\begin{equation}
+    y_j^{(l)} = f(net_j^{(l)}) = f\left( \sum_{i} w_{ij}^{(l)} y_i^{(l-1)} - w_{0j}^{(l)} \right)
+\end{equation}
+Common functions are:
+\begin{itemize}
+    \item \textbf{Sigmoid:} $f(\sigma) = \frac{1}{1+e^{-\sigma}}$
+    \item \textbf{Tanh:} $f(\sigma) = \tanh(\sigma)$
+    \item \textbf{ReLU:} $f(\sigma) = \max(0, \sigma)$
+\end{itemize}
+
+\subsection{Backpropagation Algorithm}
+We train the MLP using \textbf{Gradient Descent} to minimize a loss function, typically the Mean Squared Error (MSE):
+\begin{equation}
+    \epsilon_{MSE}(w) = \frac{1}{2} \sum_{k=1}^{M^{(L)}} (t_k - y_k^{(L)})^2
+\end{equation}
+where $t_k$ is the target value and $y_k^{(L)}$ is the actual output of the last layer $L$. The update rule is:
+\begin{equation}
+    \Delta w_{ij}^{(l)} = - \eta \frac{\partial \epsilon}{\partial w_{ij}^{(l)}}
+\end{equation}
+
+\subsubsection{Derivation of the Gradients}
+We calculate the gradient using the chain rule, starting from the output layer and propagating the error backwards ("Backpropagation").
+
+\textbf{1. Output Layer ($l=L$):}
+We define the \textbf{sensitivity} $\delta_k^{(L)}$ as the derivative of the error with respect to the net input. For the output layer, this depends directly on the target values $t_k$.
+
+\begin{figure}[ht!]
+    \centering
+    % Diagram showing backprop at the output layer (weights w_jk^L)
+    % Filename: images/Backprop_OutputLayer.png (source: image_fac07c.png)
+    \includegraphics[width=0.5\textwidth]{images/Backprop_OutputLayer.png}
+    \caption{Backpropagation at the Output Layer: The error signal is computed directly from the output $y_k^{(L)}$ and the target $t_k$.}
+    \label{fig:backprop_output}
+\end{figure}
+
+The gradient for the weights $w_{jk}^{(L)}$ connecting the last hidden layer to the output layer is given by:
+\begin{equation}
+    \frac{\partial \epsilon_{MSE}}{\partial w_{jk}^{(L)}} = \frac{\partial \epsilon_{MSE}}{\partial net_k^{(L)}} \cdot \frac{\partial net_k^{(L)}}{\partial w_{jk}^{(L)}} = - \delta_k^{(L)} \cdot y_j^{(L-1)}
+\end{equation}
+with the sensitivity:
+\begin{equation}
+    \delta_k^{(L)} = - \frac{\partial \epsilon}{\partial net_k^{(L)}} = \frac{\partial \epsilon_{MSE}}{\partial y_k^{(L)}} \cdot \frac{\partial y_k^{(L)}}{\partial net_k^{(L)}} = (t_k - y_k^{(L)}) \cdot f'(net_k^{(L)})
+\end{equation}
+
+\textbf{2. Hidden Layers ($l < L$):}
+For hidden layers, we do not have target values. The error must be propagated back from the layer above ($l+1$). The sensitivity $\delta_j^{(l)}$ for a neuron $j$ in layer $l$ is calculated as the weighted sum of the sensitivities of the connected neurons $k$ in the next layer $(l+1)$.
+
+\begin{figure}[ht!]
+    \centering
+    % Original Signals (Left)
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{Backprop_HiddenLayer1.png}
+        \caption{Backpropagation at a Hidden Layer: The error signal $\delta_j$ is derived from the weighted sum of errors $\delta_k$ from the subsequent layer.}
+        \label{fig:backprop_hidden}
+    \end{minipage}
+    \hfill
+    % Mixed Signals (Right)
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{Backprop_HiddenLayer2.png}
+        \caption{Backpropagation at a Hidden Layer: The sensitivities from the next layer are combined to compute the sensitivity for the current layer.}
+        \label{fig:backprop_hidden2}
+    \end{minipage}
+\end{figure}
+
+The sensitivity for the hidden layer is:
+\begin{equation}
+    \delta_j^{(l)} = f'(net_j^{(l)}) \sum_{k} w_{jk}^{(l+1)} \delta_k^{(l+1)}
+\end{equation}
+The weight update rule remains structurally the same:
+\begin{equation}
+    \Delta w_{ij}^{(l)} = \eta \cdot \delta_j^{(l)} \cdot y_i^{(l-1)}
+\end{equation}
+\subsubsection{Matrix Notation}
+The entire forward pass of a fully connected network can be expressed compactly using matrix multiplication. For a 3-layer network:
+\begin{equation}
+    \hat{y} = f_3(W_3 \cdot f_2(W_2 \cdot f_1(W_1 \vec{x})))
+\end{equation}
+The gradient computation (Backpropagation) then corresponds to a series of vector-matrix multiplications involving the Jacobian matrices of the layers.
+
+
+\newpage
