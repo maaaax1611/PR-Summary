@@ -142,11 +142,12 @@ The gradient for the weights $w_{jk}^{(L)}$ connecting the last hidden layer to 
 \end{equation}
 with the sensitivity:
 \begin{equation}
-    \delta_k^{(L)} = - \frac{\partial \epsilon}{\partial net_k^{(L)}} = \frac{\partial \epsilon_{MSE}}{\partial y_k^{(L)}} \cdot \frac{\partial y_k^{(L)}}{\partial net_k^{(L)}} = (t_k - y_k^{(L)}) \cdot f'(net_k^{(L)})
+    \delta_k^{(L)} = - \frac{\partial \epsilon_{MSE}}{\partial net_k^{(L)}} = \frac{\partial \epsilon_{MSE}}{\partial y_k^{(L)}} \cdot \frac{\partial y_k^{(L)}}{\partial net_k^{(L)}} = (t_k - y_k^{(L)}) \cdot f'(net_k^{(L)})
 \end{equation}
 
 \textbf{2. Hidden Layers ($l < L$):}
-For hidden layers, we do not have target values. The error must be propagated back from the layer above ($l+1$). The sensitivity $\delta_j^{(l)}$ for a neuron $j$ in layer $l$ is calculated as the weighted sum of the sensitivities of the connected neurons $k$ in the next layer $(l+1)$.
+For a hidden layer $l$, we do not have target values. The error $\epsilon$ depends on the output $y_j^{(l)}$ of neuron $j$ only via the neurons $k$ in the \textbf{next layer} $(l+1)$ that it is connected to.
+We apply the chain rule to derive the sensitivity $\delta_j^{(l)}$:
 
 \begin{figure}[ht!]
     \centering
@@ -167,13 +168,32 @@ For hidden layers, we do not have target values. The error must be propagated ba
     \end{minipage}
 \end{figure}
 
-The sensitivity for the hidden layer is:
 \begin{equation}
-    \delta_j^{(l)} = f'(net_j^{(l)}) \sum_{k} w_{jk}^{(l+1)} \delta_k^{(l+1)}
+    \delta_j^{(l)} = - \frac{\partial \epsilon_{MSE}}{\partial net_j^{(l)}} = - \frac{\partial \epsilon_{MSE}}{\partial y_j^{(l)}} \cdot \frac{\partial y_j^{(l)}}{\partial net_j^{(l)}}
 \end{equation}
-The weight update rule remains structurally the same:
+
+The second term is simply the derivative of the activation function, $f'(net_j^{(l)})$.
+The first term, $\frac{\partial \epsilon}{\partial y_j^{(l)}}$, requires summing the contributions from all neurons $k$ in the subsequent layer $(l+1)$ (since $y_j^{(l)}$ feeds into all of them):
+
 \begin{equation}
-    \Delta w_{ij}^{(l)} = \eta \cdot \delta_j^{(l)} \cdot y_i^{(l-1)}
+    \frac{\partial \epsilon_{MSE}}{\partial y_j^{(l)}} = \sum_{k=1}^{M^{(l+1)}} \left( \frac{\partial \epsilon_{MSE}}{\partial net_k^{(l+1)}} \cdot \frac{\partial net_k^{(l+1)}}{\partial y_j^{(l)}} \right)
+\end{equation}
+
+Here, we identify the terms:
+\begin{itemize}
+    \item $\frac{\partial \epsilon_{MSE}}{\partial net_k^{(l+1)}} = -\delta_k^{(l+1)}$ (Sensitivity of the next layer)
+    \item $\frac{\partial net_k^{(l+1)}}{\partial y_j^{(l)}} = w_{jk}^{(l+1)}$ (The weight connecting $j$ to $k$)
+\end{itemize}
+
+Substituting these back yields the recursive formula for the sensitivity:
+\begin{equation}
+    \delta_j^{(l)} = f'(net_j^{(l)}) \cdot \sum_{k=1}^{M^{(l+1)}} \delta_k^{(l+1)} w_{jk}^{(l+1)}
+\end{equation}
+\textbf{Interpretation:} The error $\delta_j^{(l)}$ is the weighted sum of the errors $\delta_k^{(l+1)}$ from the layer above, scaled by the local derivative $f'$. This is the essence of "propagating" the error back.
+
+Finally, the weight update rule remains structurally consistent:
+\begin{equation}
+    \Delta w_{ij}^{(l)} = - \eta \frac{\partial \epsilon_{MSE}}{\partial w_{ij}^{(l)}} = \eta \cdot \delta_j^{(l)} \cdot y_i^{(l-1)}
 \end{equation}
 \subsubsection{Matrix Notation}
 The entire forward pass of a fully connected network can be expressed compactly using matrix multiplication. For a 3-layer network:
