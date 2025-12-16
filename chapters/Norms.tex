@@ -153,7 +153,7 @@ The choice of $\phi$ determines how the algorithm treats errors of different mag
 
     \item \textbf{Dead Zone:} Costs are zero for small residuals ($|r| \le a$) and linear afterwards. This ignores small noise ("insensitivity").
     \begin{equation}
-        \ph_{dz}(r) =
+        \phi_{dz}(r) =
         \begin{cases}
             0 & \text{if } |r| \leq a \\
             |r|-a & \text{otherwise}
@@ -165,9 +165,28 @@ The choice of $\phi$ determines how the algorithm treats errors of different mag
         \caption{Geometric illustration of the Dead Zones penalty function}
         \label{fig:DeadZones}
     \end{figure}
-    \item \textbf{Large Error:} Quadratic for small errors, but constant ($a^2$) for large errors. This completely caps the influence of outliers, but the function is non-convex, which makes optimization difficult.
+    \item \textbf{Large Error:} Quadratic for small errors, but constant for large errors. This completely caps the influence of outliers, but the function is non-convex, which makes optimization difficult.
+    \begin{equation}
+        \phi_{LE} = 
+        \begin{cases}
+            r^2 & \text{if } |r| \leq a \\
+            a^2 & \text{otherwise}
+        \end{cases}
+    \end{equation}
+    \begin{figure}[ht!]
+        \centering
+        \includegraphics[width=0.8\textwidth]{Large_Error.png}
+        \caption{Geometric illustration of the Large Error penalty function}
+        \label{fig:LargeError}
+    \end{figure}
     \item \textbf{Huber Loss:} A hybrid approach. Quadratic for small errors (differentiable at 0) and linear for large errors (robustness).
     \begin{equation}
         \phi_{\text{Huber}}(r) = \begin{cases} r^2 & \text{if } |r| \le a \\ a(2|r| - a) & \text{otherwise} \end{cases}
     \end{equation}
+    \begin{figure}[ht!]
+        \centering
+        \includegraphics[width=0.8\textwidth]{HuberLoss.png}
+        \caption{Geometric illustration of the Huber Loss}
+        \label{fig:HuberLoss}
+    \end{figure}
 \end{itemize}
