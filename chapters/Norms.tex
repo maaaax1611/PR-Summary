@@ -1,0 +1,173 @@
+\section{Norms and Norm Dependent Linear Regression}
+\label{norms_and_regression}
+
+Norms and similarity measures are fundamental concepts in pattern recognition and machine learning. They are essential for defining distances between feature vectors, formulating optimization problems, and regularizing models.
+
+\subsection{Inner Products and Norms}
+
+\subsubsection{Inner Product}
+The inner product provides a way to measure the angle and length of vectors.
+\begin{summarybox}{Definition: Inner Product}
+    The inner product of two vectors $\vec{x}, \vec{y} \in \mathbb{R}^d$ is defined as:
+    \begin{equation}
+        \langle \vec{x}, \vec{y} \rangle = \vec{x}^T \vec{y} = \sum_{i=1}^d x_i y_i
+    \end{equation}
+\end{summarybox}
+This concept extends to matrices. For two matrices $\mathbf{X}, \mathbf{Y} \in \mathbb{R}^{m \times n}$, the inner product is defined using the trace operator:
+\begin{equation}
+    \langle \mathbf{X}, \mathbf{Y} \rangle = \operatorname{tr}(\mathbf{X}^T \mathbf{Y}) = \sum_{i=1}^m \sum_{j=1}^n x_{ij} y_{ij}
+\end{equation}
+
+\subsubsection{Norms}
+A norm is a function $\|\cdot\|: \mathcal{X} \to \mathbb{R}$ that assigns a strictly positive length or size to a vector. To be a valid norm, the function must satisfy specific axioms.
+
+\begin{itemize}
+    \item \textbf{Non-negativity:} $\forall \vec{x}: \|\vec{x}\| \ge 0$.
+    \item \textbf{Definiteness:} $\|\vec{x}\| = 0$ if and only if $\vec{x} = \vec{0}$.
+    \item \textbf{Homogeneity:} $\|a\vec{x}\| = |a| \cdot \|\vec{x}\|$ for any scalar $a \in \mathbb{R}$.
+    \item \textbf{Triangle Inequality:} $\|\vec{x} + \vec{y}\| \le \|\vec{x}\| + \|\vec{y}\|$.
+\end{itemize}
+
+\textbf{Common Vector Norms:}
+The general $L_p$-norm ($p \ge 1$) is defined as:
+\begin{equation}
+    \|\vec{x}\|_p = \left( \sum_{i=1}^d |x_i|^p \right)^{\frac{1}{p}}
+\end{equation}
+Specific important instances include:
+\begin{itemize}
+    \item \textbf{$L_1$-norm (Manhattan):} $\|\vec{x}\|_1 = \sum_{i=1}^d |x_i|$. This norm sums the absolute values of the components.
+    \item \textbf{$L_2$-norm (Euclidean):} $\|\vec{x}\|_2 = \sqrt{\sum_{i=1}^d x_i^2}$. This corresponds to the standard straight-line distance.
+    \item \textbf{$L_\infty$-norm (Maximum):} $\|\vec{x}\|_\infty = \max_i |x_i|$. It takes the value of the largest component magnitude.
+\end{itemize}
+
+\textit{Note on the $L_0$-"norm":} The $L_0$-norm counts the number of non-zero entries in a vector. Although often referred to as a norm, it is \textbf{not} a valid norm because it does not satisfy the homogeneity property.
+
+\textbf{Quadratic Norms and Mahalanobis Distance:}
+Given a symmetric positive definite matrix $\mathbf{P}$, the quadratic $L_P$-norm is defined as:
+\begin{equation}
+    \|\vec{x}\|_\mathbf{P} = \sqrt{\vec{x}^T \mathbf{P} \vec{x}} = \|\mathbf{P}^{\frac{1}{2}} \vec{x}\|_2
+\end{equation}
+If we choose $\mathbf{P} = \boldsymbol{\Sigma}^{-1}$ (the inverse covariance matrix), the distance induced by this norm corresponds to the \textbf{Mahalanobis distance}. This measure accounts for the correlation between variables in a dataset.
+
+\subsubsection{Unit Balls}
+The unit ball is the set of all vectors $\vec{x}$ such that $\|\vec{x}\| \le 1$. The shape of the unit ball visualizes the geometric properties of the norm:
+\begin{itemize}
+    \item \textbf{$L_1$-norm:} A diamond (rotated square) in 2D. This sharp geometry promotes sparsity in optimization.
+    \item \textbf{$L_2$-norm:} A circle in 2D (or sphere in higher dimensions).
+    \item \textbf{$L_\infty$-norm:} A square (or hypercube).
+    \item \textbf{$L_p$-norm ($p<1$):} Concave shapes (star-like). Since the set is not convex, these do not form valid norms.
+\end{itemize}
+
+\subsection{Norm Dependent Linear Regression}
+Linear regression aims to approximate a target vector $\vec{b}$ using a linear model $\mathbf{A}\vec{x}$. The goal is to minimize the residual vector $\vec{r} = \mathbf{A}\vec{x} - \vec{b}$.
+The general optimization problem depends on the chosen norm:
+\begin{equation}
+    \hat{\vec{x}} = \operatorname{argmin}_{\vec{x}} \|\mathbf{A}\vec{x} - \vec{b}\|
+\end{equation}
+Different norms lead to different solutions and robustness properties.
+
+\subsubsection{Least-Squares Regression ($L_2$-Norm)}
+Minimizing the squared $L_2$-norm of the residuals is the most common approach:
+\begin{equation}
+    \hat{\vec{x}} = \operatorname{argmin}_{\vec{x}} \|\mathbf{A}\vec{x} - \vec{b}\|_2^2 = \operatorname{argmin}_{\vec{x}} (\mathbf{A}\vec{x} - \vec{b})^T (\mathbf{A}\vec{x} - \vec{b})
+\end{equation}
+To solve this, we expand the term and calculate the derivative with respect to $\vec{x}$:
+\begin{align}
+    f(\vec{x}) &= \vec{x}^T \mathbf{A}^T \mathbf{A} \vec{x} - 2\vec{b}^T \mathbf{A} \vec{x} + \vec{b}^T \vec{b} \\
+    \nabla_{\vec{x}} f(\vec{x}) &= 2 \mathbf{A}^T \mathbf{A} \vec{x} - 2 \mathbf{A}^T \vec{b}
+\end{align}
+Setting the gradient to zero yields the closed-form solution (Normal Equations):
+\begin{equation}
+    \hat{\vec{x}} = (\mathbf{A}^T \mathbf{A})^{-1} \mathbf{A}^T \vec{b}
+\end{equation}
+This solution assumes that the columns of $\mathbf{A}$ are linearly independent.
+
+\subsubsection{Chebyshev and Sum of Absolute Residuals}
+\begin{itemize}
+    \item \textbf{Chebyshev Regression ($L_\infty$):} Minimizes the maximum individual residual ($\max_i |r_i|$). This optimization problem can be reformulated as a Linear Programming (LP) problem.
+    \item \textbf{Sum of Absolute Residuals ($L_1$):} Minimizes $\sum |r_i|$. This can also be rewritten as an LP problem. The $L_1$-norm is significantly more \textbf{robust to outliers} than the $L_2$-norm, as large errors are not squared.
+\end{itemize}
+
+\subsection{Regularization}
+In many cases, the problem is ill-posed or we want to enforce specific properties on the solution vector $\vec{x}$. This is achieved by adding a regularization term to the objective function.
+
+\subsubsection{Ridge Regression ($L_2$ Regularization)}
+We minimize the residual error plus the squared Euclidean length of the parameter vector:
+\begin{equation}
+    \min_{\vec{x}} \|\mathbf{A}\vec{x} - \vec{b}\|_2^2 + \lambda \|\vec{x}\|_2^2
+\end{equation}
+Geometrically, this constrains the solution to lie within or near an $L_2$ unit ball. It prevents overfitting by keeping weights small.
+
+\begin{figure}[ht!]
+    \centering
+    \includegraphics[width=0.5\textwidth]{L2_Regression.png}
+    \caption{Geometric illustration of the L2-constrained optimization problem}
+    \label{fig:L2_reg}
+\end{figure}
+
+\subsubsection{Lasso ($L_1$ Regularization)}
+The Lasso (Least Absolute Shrinkage and Selection Operator) uses the $L_1$-norm for regularization:
+\begin{equation}
+    \min_{\vec{x}} \|\mathbf{A}\vec{x} - \vec{b}\|_2^2 + \lambda \|\vec{x}\|_1
+\end{equation}
+Because the $L_1$ unit ball has "corners" (spikes) aligned with the axes, the solution often hits these corners. This forces some coefficients to become exactly zero (solution lies on one of the corrdinate axes), effectively performing \textbf{feature selection} and leading to \textbf{sparse solutions}. This property is exploited in **Compressed Sensing** to reconstruct signals from few measurements.
+
+\begin{figure}[ht!]
+    \centering
+    \includegraphics[width=0.5\textwidth]{L1_Regression.png}
+    \caption{Geometric illustration of the L1-constrained optimization problem}
+    \label{fig:L1_reg}
+\end{figure}
+
+
+\subsection{Penalty Functions}
+Instead of strictly using norms, we can define a general penalty function $\phi(r_i)$ for the residuals. The problem becomes:
+\begin{equation}
+    \min \sum_{i=1}^m \phi(r_i) \quad \text{subject to} \quad \vec{r} = \mathbf{A}\vec{x} - \vec{b}
+\end{equation}
+The choice of $\phi$ determines how the algorithm treats errors of different magnitudes.
+
+\begin{itemize}
+    \item \textbf{$L_2$-Norm:} Parabolic shape. Heavy penalty for large errors (outliers).
+    \begin{equation}
+        \phi(r) = r^2
+    \end{equation}
+    \item \textbf{$L_1$-Norm:} V-shape. Linear penalty for large errors, making it robust.
+    \begin{equation}
+        \phi(r) = |r|
+    \end{equation}
+    \item \textbf{Log Barrier:} The cost approaches infinity as residuals approach the limit $a$. This acts as a strict constraint (hard limit).
+    \begin{equation}
+        \phi_{Barrier}(r) = 
+        \begin{cases} 
+            -a^2 \log\left(1-\left(\frac{r}{a}\right)^2\right) & \text{if } |r| \le a \\
+            \inf & \text{otherwise}
+        \end{cases}    
+    \end{equation}
+    \begin{figure}[ht!]
+        \centering
+        \includegraphics[width=0.8\textwidth]{Log_Barrier.png}
+        \caption{Geometric illustration of the Log-Barrier penalty function}
+        \label{fig:Log_Barrier}
+    \end{figure}
+
+    \item \textbf{Dead Zone:} Costs are zero for small residuals ($|r| \le a$) and linear afterwards. This ignores small noise ("insensitivity").
+    \begin{equation}
+        \ph_{dz}(r) =
+        \begin{cases}
+            0 & \text{if } |r| \leq a \\
+            |r|-a & \text{otherwise}
+        \end{cases}
+    \end{equation}
+    \begin{figure}[ht!]
+        \centering
+        \includegraphics[width=0.8\textwidth]{Dead_Zones.png}
+        \caption{Geometric illustration of the Dead Zones penalty function}
+        \label{fig:DeadZones}
+    \end{figure}
+    \item \textbf{Large Error:} Quadratic for small errors, but constant ($a^2$) for large errors. This completely caps the influence of outliers, but the function is non-convex, which makes optimization difficult.
+    \item \textbf{Huber Loss:} A hybrid approach. Quadratic for small errors (differentiable at 0) and linear for large errors (robustness).
+    \begin{equation}
+        \phi_{\text{Huber}}(r) = \begin{cases} r^2 & \text{if } |r| \le a \\ a(2|r| - a) & \text{otherwise} \end{cases}
+    \end{equation}
+\end{itemize}
