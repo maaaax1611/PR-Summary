@@ -1,0 +1,234 @@
+\section{Pattern Recognition Basics}
+\subsection{Postulates}
+\begin{enumerate}
+    \item Availability of a representative sample $\omega$ of patterns $^if(x)$ for the given field of problems $\Omega$
+    
+    \[
+    \omega = \{^1f(x), \dots, ^Nf(x)\} \subseteq \Omega
+    \]
+
+    \item A (simple) pattern has features, which characterize its membership in a certain class $\Omega_\kappa$.
+    \item Compact domain in the feature space of features of the same class; domains of different classes are (reasonably) separable.
+    \begin{itemize}
+        \item small intra-class distance
+        \item high inter-class distance
+    \end{itemize}
+    \begin{figure}[ht!]
+        \centering
+        % Diagram showing backprop at the output layer (weights w_jk^L)
+        % Filename: images/FeatureSpace_Compactness.PNG (source: image_fac07c.png)
+        \includegraphics[width=0.7\textwidth]{FeatureSpace_Compactness.PNG}
+        \caption{Visualization of compactness in feature space}
+        \label{fig:FeatureSpace_Compactness}
+    \end{figure}
+    \item A (complex) pattern consists of simpler constituents, which have certain relations to each other. A pattern may be decomposed into these constituents.
+    \item A (complex) pattern $\mathbf{f}(\mathbf{x}) \in \Omega$ has a certain structure. Not any arrangement of simple constituents is a valid pattern. Many patterns may be represented with relatively few constituents.
+    \item Two patterns are similar if their features or simpler constituents differ only slightly.
+\end{enumerate}
+\newpage
+
+\subsection{Definitions}
+\begin{itemize}[leftmargin=2.5cm, labelsep=0.5cm, itemsep=1.0ex]
+    \item[$\mathbf{x} \in \mathbb{R}^d :$] $d$-dimensional feature vector
+    \item[$y :$] class number \\
+    {\small (usually $y \in \{0, 1\}$ or $y \in \{-1, +1\}$)}
+    \item[$p(y) :$] prior probability of pattern class $y$
+    \item[$p(\mathbf{x}) :$] evidence \\
+    {\small (distribution of features in $d$-dimensional feature space)}
+    \item[$p(\mathbf{x}, y) :$] joint probability density function (pdf)
+    \item[$p(\mathbf{x} | y) :$] class conditional density
+    \item[$p(y | \mathbf{x}) :$] posterior probability
+\end{itemize}
+
+\subsection{Statistics and Maths}
+\subsubsection{Bayes' Theorem}
+\begin{align*}
+    \underbrace{p(\mathbf{x}, y)}_{\text{joint pdf}} &= \underbrace{p(y)}_{\text{prior}} \cdot \underbrace{p(\mathbf{x}|y)}_{\text{class conditional pdf}} \\[2ex]
+    &= \underbrace{p(\mathbf{x})}_{\text{evidence}} \cdot \underbrace{p(y|\mathbf{x})}_{\text{posterior}}
+\end{align*}
+From this we can compute the posterior probability:
+\begin{equation}
+    p(y|\mathbf{x}) = \frac{p(y) \cdot p(\mathbf{x}|y)}{p(\mathbf{x})} \quad \text{with} \quad p(\mathbf{x}) = \sum_{y'} p(y') \cdot p(\mathbf{x}|y') % [cite: 1200, 1210]
+\end{equation}
+
+\textbf{Note on Marginalization}\\
+The evidence $p(\mathbf{x})$ is a marginal of $p(\mathbf{x}, y)$:
+\begin{itemize}[leftmargin=1.5cm, itemsep=1ex]
+    \item We get $p(\mathbf{x})$ by marginalizing $p(\mathbf{x}, y)$ over $y$:
+    \[ p(\mathbf{x}) = \sum_{y} p(y) \cdot p(\mathbf{x}|y) \]
+    \item Accordingly, we get $p(y)$ by marginalizing $p(\mathbf{x}, y)$ over $\mathbf{x}$, i.e.:
+    \[ p(y) = \int p(\mathbf{x}, y) d\mathbf{x} \]
+\end{itemize}
+Basically, marginalization means summing/integrating out the unwanted variable.\\
+\noindent
+\textcolor{red}{Notice:} $y$ is a discrete random variable whereas $\mathbf{x}$ is a continuous random vector (summation vs. integration).
+\newpage
+
+\subsubsection{Covariance Matrix}
+The covariance matrix $\boldsymbol{\Sigma} \in \mathbb{R}^{d \times d}$ of a $d$-dimensional random vector $\mathbf{x}$ is defined as: 
+\begin{equation}
+    \Sigma_{ij} = \text{Cov}(x_i, x_j) = \mathbb{E}[(x_i - \mu_i)(x_j - \mu_j)]
+\end{equation}
+
+\noindent \textbf{Structure:}
+The covariance matrix is organized as follows:
+\begin{equation}
+    \boldsymbol{\Sigma} = 
+    \begin{pmatrix}
+        \sigma_{11} & \sigma_{12} & \cdots & \sigma_{1d} \\
+        \sigma_{21} & \sigma_{22} & \cdots & \sigma_{2d} \\
+        \vdots & \vdots & \ddots & \vdots \\
+        \sigma_{d1} & \sigma_{d2} & \cdots & \sigma_{dd}
+    \end{pmatrix}
+\end{equation}
+The diagonal elements $\sigma_{ii}$ represent the variances of the individual components $x_i$ of $\mathbf{x}$, while the off-diagonal elements $\sigma_{ij}$ represent the covariances between components $x_i$ and $x_j$.
+
+\noindent \textbf{Practical Computation:}
+%Given a sample $\{^1\mathbf{x}, ^2\mathbf{x}, \dots, ^N\mathbf{x}\}$ of $N$ observations, the sample covariance matrix is computed as:
+% \begin{equation}
+%     \hat{\boldsymbol{\Sigma}} = \frac{1}{N-1} \sum_{n=1}^{N} (\mathbf{x}^n - \hat{\boldsymbol{\mu}})(\mathbf{x}^n - \hat{\boldsymbol{\mu}})^T
+% \end{equation}
+%where $\hat{\boldsymbol{\mu}} = \frac{1}{N} \sum_{n=1}^{N} \mathbf{x}^n$ is the sample mean. \\
+\begin{equation}
+    \hat{\boldsymbol{\Sigma}} = \frac{1}{N-1} \sum_{n=1}^{N} (\vec{x}_i - \vec{\mu}_i)(\vec{x}_i - \vec{\mu}_i)^T
+\end{equation}
+For a specific class only use the samples belonging to that class. \\
+Alternatively, in matrix form with centered data matrix $\mathbf{X} \in \mathbb{R}^{d \times N}$:
+\begin{equation}
+    \hat{\boldsymbol{\Sigma}} = \frac{1}{N-1} \mathbf{X} \mathbf{X}^T
+\end{equation}
+
+\textbf{Properties:}
+\begin{itemize}
+    \item $\boldsymbol{\Sigma}$ is symmetric: $\boldsymbol{\Sigma} = \boldsymbol{\Sigma}^T$
+    \item $\boldsymbol{\Sigma}$ is positive semi-definite: $\mathbf{z}^T \boldsymbol{\Sigma} \mathbf{z} \geq 0$ for all $\mathbf{z} \in \mathbb{R}^d$
+    \item Diagonal elements $\sigma_{ii}$ are the variances of the individual components $x_i$ of $\mathbf{x}$
+    \item Off-diagonal elements $\sigma_{ij}$ are the covariances between components $x_i$ and $x_j$
+\end{itemize}
+
+
+
+
+\subsubsection{The Gaussian}
+A $d$-dimensional Gaussian (Normal) distribution with mean vector $\boldsymbol{\mu} \in \mathbb{R}^d$ and covariance matrix $\boldsymbol{\Sigma} \in \mathbb{R}^{d \times d}$ is defined as: % [cite: 1300]
+\begin{equation}
+    \mathcal{N}(\mathbf{x}; \boldsymbol{\mu}, \boldsymbol{\Sigma}) = \frac{1}{\sqrt{\det(2\pi\boldsymbol{\Sigma})}} e^{-\frac{1}{2}(\mathbf{x}-\boldsymbol{\mu})^T \boldsymbol{\Sigma}^{-1} (\mathbf{x}-\boldsymbol{\mu})}
+\end{equation}
+where $\mathbf{x} \in \mathbb{R}^d$ is the feature vector.\\
+\textbf{Note}:
+\begin{itemize}
+    \item The probability for an interval [$\mathbf{a}, \mathbf{b}$] is given by the integral of the pdf over this interval: $ \int_{\mathbf{a}}^{\mathbf{b}} \mathcal{N}(\mathbf{x}; \boldsymbol{\mu}, \boldsymbol{\Sigma}) d\mathbf{x} $
+    \item The Integral over the whole space is 1: $ \int_{-\infty}^{\infty} \mathcal{N}(\mathbf{x}; \boldsymbol{\mu}, \boldsymbol{\Sigma}) d\mathbf{x} = 1 $
+    \item The probability at a single point is 0: $ \mathcal{N}(\mathbf{x}_0; \boldsymbol{\mu}, \boldsymbol{\Sigma}) = 0 $
+\end{itemize}
+
+\subsection{Performance Evaluation}
+
+\subsubsection*{1. General Classification ($K$ Classes)}
+Feature vectors are used as input for the classifier, resulting in a discrete class index.
+\begin{itemize}
+    \item \textbf{Confusion Matrix:} Visualization of the predictions vs. references.
+\end{itemize}
+
+% INSERT IMAGE: Confusion Matrix (image_a18b1a)
+\begin{figure}[ht!]
+    \centering
+    \includegraphics[width=0.7\textwidth]{confusion_matrix.png}
+    \caption{Confusion matrix with absolute frequencies for a $K$-class problem}
+\end{figure}
+
+\noindent \textbf{Evaluation Metrics:}
+
+\begin{itemize}
+    \item \textbf{Accuracy / Recognition Rate (RR):}
+    \[
+        \text{RR} := \frac{1}{N} \sum_{\kappa=1}^K n_{\kappa\kappa} \cdot 100\%
+    \]
+    
+    \item \textbf{Recall and Precision} (for a specific class $\kappa$):
+    \begin{align*}
+        \text{recall}_\kappa &= \frac{n_{\kappa\kappa}}{\sum_{i=1}^K n_{\kappa i}} = \frac{n_{\kappa\kappa}}{N_\kappa}\\[1.5ex]
+        \text{precision}_\kappa &= \frac{n_{\kappa\kappa}}{\sum_{i=1}^K n_{i\kappa}}
+    \end{align*}
+
+    \item \textbf{(Unweighted) Average Recall (UAR):}
+    \[
+        \text{UAR} := \frac{1}{K} \sum_{\kappa=1}^K \frac{n_{\kappa\kappa}}{N_\kappa} \cdot 100\%
+    \]
+\end{itemize}
+
+\subsubsection*{2. Special Case: Binary Classification (2 Classes)}
+
+For 2 classes (Positive / Negative), the confusion matrix simplifies to:
+
+\begin{center}
+\renewcommand{\arraystretch}{1.5}
+\begin{tabular}{cc|c|c|}
+    & \multicolumn{1}{c}{} & \multicolumn{2}{c}{\textbf{Reference}} \\
+    & & Positive & Negative \\ \cline{2-4}
+    \multirow{2}{*}{\rotatebox[origin=c]{90}{\textbf{Hyp.}}} & Positive & True Positive (TP) & False Positive (FP) \\ \cline{2-4}
+    & Negative & False Negative (FN) & True Negative (TN) \\ \cline{2-4}
+\end{tabular}
+\end{center}
+
+\noindent \textbf{Performance Measures:}
+
+\begin{itemize}
+    \item \textbf{Accuracy:}
+    \[
+        \text{ACC} = \frac{\text{TP} + \text{TN}}{\text{TP} + \text{FP} + \text{FN} + \text{TN}}
+    \]
+    
+    \item \textbf{F-measure} (Harmonic mean of recall and precision):
+    \[
+        F = \frac{2 \cdot \text{recall} \cdot \text{precision}}{\text{recall} + \text{precision}}
+    \]
+
+    \item \textbf{Detailed Rates:}
+    \begin{itemize}[itemsep=1.2ex]
+        \item True Positive Rate (Hit Rate, Recall, \textbf{Sensitivity}):
+        \[ \text{TPR} = \frac{\text{TP}}{\text{TP} + \text{FN}} \]
+        
+        \item False Positive Rate (False Alarm Rate, Fall-out):
+        \[ \text{FPR} = \frac{\text{FP}}{\text{FP} + \text{TN}} \]
+        
+        \item Positive Predictive Value (\textbf{Precision}):
+        \[ \text{PPV} = \frac{\text{TP}}{\text{TP} + \text{FP}} \]
+        
+        \item True Negative Rate (\textbf{Specificity}):
+        \[ \text{TNR} = \frac{\text{TN}}{\text{FP} + \text{TN}} = 1 - \text{FPR} \]
+    \end{itemize}
+\end{itemize}
+
+\subsubsection*{3. Receiver Operating Characteristic (ROC)}
+
+Classification is often a threshold decision (e.g., based on eye pressure).
+\begin{itemize}
+    \item The TPR and FPR can be computed for different thresholds $\theta$.
+    \item Higher TPR usually leads to higher FPR (trade-off).
+\end{itemize}
+
+% INSERT IMAGE: Gaussian curves example (image_a18abc)
+\begin{figure}[ht!]
+    \centering
+    \includegraphics[width=0.7\textwidth]{glaucoma_example.png}
+    \caption{Classification based on threshold $\theta$}
+\end{figure}
+
+\noindent \textbf{The ROC Curve:}
+A classifier defines a single 2-d point in the ROC graph. Varying $\theta$ creates the curve.
+
+% INSERT IMAGE: ROC Curve (image_a18ac3) and/or (image_a18aa1)
+\begin{figure}[ht!]
+    \centering
+    \includegraphics[width=0.9\textwidth]{roc_curve.png}
+    \caption{ROC Curve: Sensitivity vs. (1 - Specificity)}
+\end{figure}
+
+\noindent \textbf{Area Under Curve (AUC):}
+\begin{itemize}
+    \item Used to compare classifiers (bigger AUC $\rightarrow$ better classifier).
+    \item TPR and FPR do not depend on the total number of samples.
+    \item Hence, the ROC curve is \textbf{independent of the priors} of both classes (as opposed to recall-precision-curves).
+\end{itemize}
+\newpage

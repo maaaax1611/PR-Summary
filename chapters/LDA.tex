@@ -1,0 +1,111 @@
+\section{Discriminant Analysis}
+
+Discriminant analysis methods are discriminative modeling techniques that model the posterior probability $\rho(y|\mathbf{x})$ through factorization. % [cite: 1400]
+
+\subsection{The Gaussian Classifier}
+
+A Bayesian classifier is referred to as a Gaussian Classifier if the class-conditional density is assumed to be a Gaussian distribution: % [cite: 1410]
+\begin{equation}
+    \rho(\mathbf{x}|y) = \mathcal{N}(\mathbf{x}; \boldsymbol{\mu}_y, \boldsymbol{\Sigma}_y) = \frac{1}{\sqrt{\det(2\pi\boldsymbol{\Sigma}_y)}} e^{-\frac{1}{2}(\mathbf{x}-\boldsymbol{\mu}_y)^T \boldsymbol{\Sigma}_y^{-1} (\mathbf{x}-\boldsymbol{\mu}_y)} % [cite: 1413]
+\end{equation}
+where $\mathbf{x} \in \mathbb{R}^d$ is the feature vector, $\boldsymbol{\mu}_y$ is the mean vector of class $y$, and $\boldsymbol{\Sigma}_y$ is the positive definite covariance matrix. % [cite: 1414]
+
+\subsubsection{Decision Boundaries}
+The geometry of the decision boundary depends on the covariance matrices: % [cite: 1422]
+\begin{itemize}
+    \item \textbf{General Case:} The decision boundary is quadratic in the components of $\mathbf{x}$. % [cite: 1423]
+    \item \textbf{Linear Discriminant Analysis (LDA):} If all classes share the same covariance matrix ($\boldsymbol{\Sigma}_y = \boldsymbol{\Sigma}$), the boundary becomes linear. % [cite: 1425]
+    \item \textbf{Naive Bayes:} If covariance matrices are diagonal (assuming feature independence), this results in a Naive Bayes classifier. % [cite: 1426]
+    \item \textbf{Nearest Neighbor:} If $\boldsymbol{\Sigma}_y = \mathbf{I}$ (identity matrix) and priors are identical, minimizing the Mahalanobis distance simplifies to minimizing the Euclidean distance $||\mathbf{x} - \boldsymbol{\mu}_y||^2$. % [cite: 1449]
+\end{itemize}
+
+\subsubsection{Regularization}
+To compromise between linear and quadratic boundaries, regularized covariance matrices can be used by interpolating with a parameter $\alpha \in [0,1]$: % [cite: 1461]
+\begin{equation}
+    \boldsymbol{\Sigma}_y(\alpha) = \alpha \boldsymbol{\Sigma}_y + (1-\alpha) \boldsymbol{\Sigma} % [cite: 1462]
+\end{equation}
+
+\subsection{Feature Transformation (Whitening)}
+
+We can transform the features so that they share the identity matrix as their covariance. Using Singular Value Decomposition (SVD) $\boldsymbol{\Sigma} = \mathbf{U}\mathbf{D}\mathbf{U}^T$, the whitening transform is: % [cite: 1511]
+\begin{equation}
+    \phi(\mathbf{x}) = \mathbf{D}^{-\frac{1}{2}}\mathbf{U}^T \mathbf{x} % [cite: 1711]
+\end{equation}
+In the transformed space, the classification essentially becomes a Nearest Neighbor decision rule where transformed mean vectors serve as prototypes. % [cite: 1789]
+
+\subsection{Rank Reduced Linear Discriminant Analysis}
+
+The problem is to choose an optimal subspace of dimension $L = K-1$ ($K$ classes) that maximizes the spread of projected centroids. % [cite: 35, 36]
+This is solved by Principal Component Analysis (PCA) on the covariance matrix of the mean vectors. % [cite: 39]
+
+\subsubsection{Optimization Problem}
+We seek a linear mapping $\Phi \in \mathbb{R}^{L \times (K-1)}$ that maximizes the spread: % [cite: 50]
+\begin{equation}
+    \Phi^* = \operatorname{argmax}_{\Phi} \left( \frac{1}{K} \sum_{y=1}^{K} (\Phi\boldsymbol{\mu}_y' - \Phi\overline{\boldsymbol{\mu}}')^T (\Phi\boldsymbol{\mu}_y' - \Phi\overline{\boldsymbol{\mu}}') + \sum_{i=1}^{L} \lambda_i (||\Phi_i||_2^2 - 1) \right) % [cite: 58]
+\end{equation}
+Lagrange multipliers $\lambda_i$ enforce the constraint that the projection vectors $\Phi_i$ have unit length ($||\Phi_i||_2^2 = 1$). % [cite: 59, 60]
+
+\subsubsection{Derivation}
+Using matrix calculus derivatives, specifically $\frac{\partial \operatorname{tr}(\mathbf{X}\mathbf{B}\mathbf{X}^T)}{\partial \mathbf{X}} = \mathbf{X}\mathbf{B}^T + \mathbf{X}\mathbf{B}$, we differentiate the objective function (rewritten using trace): % [cite: 268, 304]
+\begin{equation}
+    \frac{\partial}{\partial \Phi} \{ \operatorname{tr}(\Phi \boldsymbol{\Sigma}_{inter} \Phi^T) + \dots \} = 2\Phi\boldsymbol{\Sigma}_{inter} + 2\boldsymbol{\lambda}\Phi = 0 % [cite: 314]
+\end{equation}
+This leads to the eigenvalue problem $\boldsymbol{\Sigma}_{inter}\Phi^T = \lambda'\Phi^T$. % [cite: 326]
+The rows of the optimal mapping $\Phi$ are the eigenvectors of the inter-class covariance matrix corresponding to the largest eigenvalues. % [cite: 376]
+
+\subsection{Fisher's Linear Discriminant Analysis}
+
+Fisher's original method does not assume Gaussian distributions but focuses on projecting samples onto a line with direction $\mathbf{r}$ ($||\mathbf{r}||_2=1$) such that $\tilde{x}_i = \mathbf{x}_i^T \mathbf{r}$. % [cite: 448, 449]
+
+\subsubsection{Generalized Rayleigh Quotient}
+Fisher optimized the projection to maximize the ratio of the between-class scatter to the within-class scatter: % [cite: 450]
+\begin{equation}
+    r^* = \operatorname{argmax}_{\mathbf{r}} J(\mathbf{r}) = \operatorname{argmax}_{\mathbf{r}} \frac{|\tilde{\mu}_1 - \tilde{\mu}_2|^2}{\tilde{s}_1^2 + \tilde{s}_2^2} = \frac{\mathbf{r}^T \mathbf{S}_B \mathbf{r}}{\mathbf{r}^T \mathbf{S}_W \mathbf{r}} % [cite: 451, 591]
+\end{equation}
+where $\mathbf{S}_B$ is the between-class scatter matrix and $\mathbf{S}_W$ is the within-class scatter matrix. % [cite: 497, 498]
+
+\subsubsection{Solution}
+Maximizing this quotient is equivalent to solving the generalized eigenvalue problem $\mathbf{S}_B \mathbf{r}^* = \lambda \mathbf{S}_W \mathbf{r}^*$. % [cite: 606]
+Since $\mathbf{S}_B \mathbf{r}^*$ is always in the direction of the difference of means $(\boldsymbol{\mu}_1 - \boldsymbol{\mu}_2)$, the analytical solution is: % [cite: 609]
+\begin{equation}
+    \mathbf{r}^* = \mathbf{S}_W^{-1} (\boldsymbol{\mu}_1 - \boldsymbol{\mu}_2) % [cite: 612]
+\end{equation}
+
+\subsection{Applications}
+
+\subsubsection{The adidas\_1 Shoe}
+LDA was applied in a smart running shoe to classify runner fatigue and surface conditions. % [cite: 687, 690]
+\begin{itemize}
+    \item \textbf{Hardware:} A Hall sensor measures compression with a resolution of $0.1$ mm at $1$ kHz. A microcontroller ($24$ MHz) processes the data. % [cite: 702, 703, 707]
+    \item \textbf{Features:} 19 features were initially computed (e.g., fall gradient, step area, time between steps). Feature selection reduced this to a minimal set for real-time classification. % [cite: 738, 749, 757]
+    \item \textbf{Decision:} A linear decision boundary $sgn(\boldsymbol{\alpha}^T \mathbf{x} + \alpha_0)$ distinguishes between states like "soft surface" vs. "hard surface". % [cite: 731, 821]
+\end{itemize}
+
+\subsubsection{Shape Modeling}
+PCA is used to model organ shapes (e.g., kidneys) for segmentation. % [cite: 897]
+\begin{itemize}
+    \item \textbf{Representation:} Shapes are represented by a vector of $n$ surface points $\mathbf{x} \in \mathbb{R}^{3n}$. % [cite: 849]
+    \item \textbf{Model:} PCA is performed on the landmark configuration matrix $\mathbf{L}$. New shapes $\mathbf{x}^*$ are approximated by linear combinations of the eigenvectors (modes of variation): $\mathbf{x}^* = \overline{\mathbf{x}} + \sum a_i \mathbf{e}_i$. % [cite: 863, 886]
+\end{itemize}
+
+\subsection{Regression for Classification}
+
+In the two-class case ($y \in \{-1, +1\}$), the     1   linear decision boundary can be estimated via linear regression minimizing the squared error: % [cite: 960]
+\begin{equation}
+    \hat{\boldsymbol{\theta}} = \operatorname{argmin}_{\boldsymbol{\theta}} ||\mathbf{X}\boldsymbol{\theta} - \mathbf{y}||_2^2 \implies \hat{\boldsymbol{\theta}} = (\mathbf{X}^T \mathbf{X})^{-1} \mathbf{X}^T \mathbf{y} % [cite: 986, 1017]
+\end{equation}
+
+\subsubsection{Ridge Regression}
+To handle singular matrices (where $\mathbf{X}^T \mathbf{X}$ is not invertible) or overfitting, Ridge Regression adds an $L_2$ penalty: % [cite: 1042]
+\begin{equation}
+    \hat{\boldsymbol{\theta}} = \operatorname{argmin}_{\boldsymbol{\theta}} ||\mathbf{X}\boldsymbol{\theta} - \mathbf{y}||_2^2 + \lambda ||\boldsymbol{\theta}||_2^2 % [cite: 1056]
+\end{equation}
+The estimator becomes $\hat{\boldsymbol{\theta}} = (\mathbf{X}^T \mathbf{X} + \lambda \mathbf{I})^{-1} \mathbf{X}^T \mathbf{y}$. % [cite: 1080]
+Statistically, this corresponds to a Maximum A Posteriori (MAP) estimation assuming a Gaussian prior $\mathcal{N}(0, \tau^2)$ on the weights, where $\lambda = \sigma^2 / \tau^2$. % [cite: 1144, 1256]
+
+\subsubsection{Lasso}
+The Lasso uses an $L_1$ penalty term: % [cite: 1287]
+\begin{equation}
+    \hat{\boldsymbol{\theta}} = \operatorname{argmin}_{\boldsymbol{\theta}} ||\mathbf{X}\boldsymbol{\theta} - \mathbf{y}||_2^2 + \lambda ||\boldsymbol{\theta}||_1 % [cite: 1288]
+\end{equation}
+This encourages sparsity, effectively selecting a small subset of features (setting coefficients to zero). % [cite: 1290]

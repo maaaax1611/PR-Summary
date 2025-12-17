@@ -1,0 +1,24 @@
+\section{Bayesian Classifier}
+The Bayesian classifier is based on Bayes' theorem and assumes that the class-conditional densities are known. It computes the posterior probability of each class given the feature vector and assigns the pattern to the class with the highest posterior probability.\\
+\textbf{Decision Rule}
+\begin{equation}
+    y^* = \arg\max_{y} p(y|\mathbf{x})
+\end{equation}
+We can rewrite this using Bayes' theorem:
+\begin{equation}
+    p(y|\mathbf{x}) = \frac{p(y)p(\mathbf{x}|y)}{p(\mathbf{x})}
+\end{equation}
+Since $p(\mathbf{x})$ is the same for all classes (it does not depend on $y$), we can simplify the decision rule to:
+\begin{equation}
+    y^* = \arg\max_{y} p(y)p(\mathbf{x}|y)
+\end{equation}
+where $p(y)$ is the prior probability of class $y$ and $p(\mathbf{x}|y)$ is the class-conditional density.
+\textbf{Optimality of the Bayesian Classifier}\\
+The Bayesian classifier is the optimal classifier if we use a 0-1 loss function. Let $L(y', y)$ be the loss incurred when we decide class $y'$ while the true class is $y$. For a 0-1 loss function:
+\begin{equation}
+    L(y', y) = 
+    \begin{cases}
+    0, & \text{if } y' = y \\
+    1, & \text{if } y' \neq y
+    \end{cases}
+\end{equation}
