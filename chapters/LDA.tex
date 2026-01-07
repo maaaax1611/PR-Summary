@@ -1,7 +1,7 @@
 \section{Discriminant Analysis}
 \subsection{Motivation}
 From chapter \ref{sec:bayesian_classifier} we know, that the decison boundary of Gaussian classifiers is quadratic in general. 
-However, if we assume that all classes share the same covariance matrix and $\Sigma = I$ (Identity matrix), the decision boundary becomes linear.
+However, if we assume that all classes share the same covariance matrix and $\Sigma = I$ (Identity matrix), the decision boundary not only becomes linear, but we get a Nearest Neighbour classifier.
 Based on this we seek to find a transformation that maps the data into a space where the class covariances are equal and the Identity matrix.\\
 Another observation we made is, that lifting feature vectors into higher dimensions can result in a linear decision boundary.\\
 And if we already are in higher dimensions, why not try to find a lower-dimensional space that still allows for good class separation?\\
@@ -29,7 +29,7 @@ Now we can rewrite the Gaussian density function as follows:
     \mathcal{N}(\mathbf{x}; \boldsymbol{\mu}, \Sigma) 
     &= \frac{1}{\sqrt{\det 2\pi\Sigma}} e^{-\frac{1}{2}(\mathbf{x}-\boldsymbol{\mu})^T \Sigma^{-1} (\mathbf{x}-\boldsymbol{\mu})} \\
     &= \frac{1}{\sqrt{\det 2\pi\Sigma}} e^{-\frac{1}{2}(\mathbf{x}-\boldsymbol{\mu})^T \underbrace{(UD^{-\frac{1}{2}}) \cdot I \cdot (UD^{-\frac{1}{2}})^T}_{\Sigma^{-1}} (\mathbf{x}-\boldsymbol{\mu})} \\
-    &= \frac{1}{\sqrt{\det 2\pi\Sigma}} e^{-\frac{1}{2} \left( \underbrace{(D^{-\frac{1}{2}}U^T)\mathbf{x}}_{\text{transformed } \vec{x}} - \underbrace{(D^{-\frac{1}{2}}U^T)\boldsymbol{\mu}}_{\text{transformed } \vec{\mu}} \right)^T \underbrace{I}_{\substack{\text{``Covariance matrix} \\ \text{becomes an Identity matrix''} \\ \Sigma = 1}} \left( \underbrace{(D^{-\frac{1}{2}}U^T)\mathbf{x}}_{\text{transformed } \vec{x}} - \underbrace{(D^{-\frac{1}{2}}U^T)\boldsymbol{\mu}}_{\text{transformed } \vec{\mu}} \right)}
+    &= \frac{1}{\sqrt{\det 2\pi\Sigma}} e^{-\frac{1}{2} \left( \underbrace{(D^{-\frac{1}{2}}U^T)\mathbf{x}}_{\text{transformed } \vec{x}} - \underbrace{(D^{-\frac{1}{2}}U^T)\boldsymbol{\mu}}_{\text{transformed } \vec{\mu}} \right)^T \underbrace{I}_{\substack{\text{Covariance matrix} \\ \text{becomes an Identity matrix} \\ \Sigma = 1}} \left( \underbrace{(D^{-\frac{1}{2}}U^T)\mathbf{x}}_{\text{transformed } \vec{x}} - \underbrace{(D^{-\frac{1}{2}}U^T)\boldsymbol{\mu}}_{\text{transformed } \vec{\mu}} \right)}
 \end{align*}
 From this we can read off the transformation that maps the data into a space where the covariance matrix is the Identity matrix:
 \begin{equation}
@@ -69,7 +69,7 @@ on the joint covariance matrix:
         &= \operatorname*{argmax}_y \left\{ \log p(y) - \frac{1}{2} (\phi(\mathbf{x}) - \phi(\boldsymbol{\mu}_y))^T (\phi(\mathbf{x}) - \phi(\boldsymbol{\mu}_y)) \right\} \\
         &= \operatorname*{argmin}_y \left\{ \frac{1}{2} \| \phi(\mathbf{x}) - \phi(\boldsymbol{\mu}_y) \|_2^2 - \log p(y) \right\}
 \end{align*}
-\noindent where $\| \cdot \|_2$ denotes the $L_2$ norm. Note that this basically is a biased nearest neigbour classifier in the transformed space.\\
+\noindent where $\| \cdot \|_2$ denotes the $L_2$ norm. Note that this basically is a biased nearest neighbour classifier in the transformed space.\\
 This gets clearer when looking at the following visualization:
 \begin{figure}[H]
     \centering

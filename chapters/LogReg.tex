@@ -1,0 +1,94 @@
+\section{Logistic Regression}
+Logistic Regression is a discriminative model. We model the posterior probability $p(y|\mathbf{x})$ directly instead of modeling the class-conditional densities.
+We use the logistic (sigmoid) function to map the linear combination of input features to a probability value between 0 and 1.
+\begin{equation}
+    g(x) = \frac{1}{1 + e^{-x}}
+\end{equation}
+\begin{equation}
+    g'(x) = g(x)(1 - g(x))
+\end{equation}
+We can express the posterior probability as follows:
+\begin{equation}
+    p(y=0|\mathbf{x}) = \frac{1}{1 + e^{-F(\mathbf{x})}} \quad \text{and} \quad p(y=1|\mathbf{x}) = 1 - p(y=0|\mathbf{x}) = \frac{1}{1 + e^{F(\mathbf{x})}}
+\end{equation}
+
+\textbf{Decision Boundary: }\\
+The decision boundary is defined by $F(\mathbf{x}) = 0$. This mean any point $\mathbf{x}$ on the decision boundary satisfies:
+\begin{equation}
+    \log \frac{p(y=0 | \mathbf{x})}{p(y=1 | \mathbf{x})} = \log \frac{0.5}{0.5} = \log 1 = 0
+\end{equation}
+If we plug a Gaussian in for the class conditional densities, we get:
+\begin{align*}
+    & \log \frac{e^{-\frac{1}{2}(\mathbf{x}-\boldsymbol{\mu}_0)^T \Sigma_0^{-1} (\mathbf{x}-\boldsymbol{\mu}_0)}}{e^{-\frac{1}{2}(\mathbf{x}-\boldsymbol{\mu}_1)^T \Sigma_1^{-1} (\mathbf{x}-\boldsymbol{\mu}_1)}} = \\[1em]
+    &= \frac{1}{2} \left( (\mathbf{x}-\boldsymbol{\mu}_1)^T \Sigma_1^{-1} (\mathbf{x}-\boldsymbol{\mu}_1) - (\mathbf{x}-\boldsymbol{\mu}_0)^T \Sigma_0^{-1} (\mathbf{x}-\boldsymbol{\mu}_0) \right) \\[1em]
+    &= \frac{1}{2} \bigg( 
+        \underbrace{\mathbf{x}^T (\Sigma_1^{-1} - \Sigma_0^{-1}) \mathbf{x}}_{\text{\color{blue} Quadratic Term } (\sim x^2)} 
+        \underbrace{- 2(\boldsymbol{\mu}_1^T \Sigma_1^{-1} - \boldsymbol{\mu}_0^T \Sigma_0^{-1}) \mathbf{x}}_{\text{\color{teal} Linear Term } (\sim x)} 
+        + \underbrace{(\boldsymbol{\mu}_1^T \Sigma_1^{-1} \boldsymbol{\mu}_1 - \boldsymbol{\mu}_0^T \Sigma_0^{-1} \boldsymbol{\mu}_0)}_{\text{Constant}}
+    \bigg)
+\end{align*}
+This can be formulated as a quadratic equation in $\mathbf{x}$.
+\begin{equation}
+    \label{eq:logreg_Fx}
+    F(\mathbf{x}) = \underbrace{\mathbf{x}^T A \mathbf{x}}_{\text{\color{blue} Quadratic Term}} + \underbrace{\mathbf{\alpha}^T \mathbf{x}}_{\text{\color{teal}Linear Term}} + \alpha_0 = 0
+\end{equation}
+Now we can think about the shape of the decision boundary:
+\begin{itemize}
+    \item If $\Sigma_0 \neq \Sigma_1$: The decision boundary is quadratic (e.g., hyperbola, parabola, ellipse).
+    \item If $\Sigma_0 = \Sigma_1 = \Sigma$: The quadratic term vanishes and the decision boundary is linear (a hyperplane).
+\end{itemize}
+\begin{figure}[ht!]
+    \centering
+    % Original Signals (Left)
+    \begin{minipage}{0.4\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{LinearDB.png}
+        \caption{Linear Decision Boundary: Equal Covariance Matrices lead to a linear decision boundary (hyperplane).}
+        \label{fig:LinearDB}
+    \end{minipage}
+    \hfill
+    % Mixed Signals (Right)
+    \begin{minipage}{0.4\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{QuadraticDB.png}
+        \caption{Quadratic Decision Boundary: Unequal Covariance Matrices lead to a quadratic decision boundary (e.g., hyperbola, parabola, ellipse).}
+        \label{fig:QuadraticDB}
+    \end{minipage}
+\end{figure}
+{\color{red}Note:} We can lift the dimension of $\mathbf{x}$ to transform a non-linear decision boundary in the original space to a linear decision boundary in the higher-dimensional space.\\
+
+\textbf{Parameter Estimation: }\\
+We can rewrite equation \ref{eq:logreg_Fx} as a linear combination by lifting the input vector $\mathbf{x}$ to $\mathbf{\tilde{x}}$:
+\begin{equation}
+    F(\mathbf{x}) = \mathbf{\theta}^T \mathbf{x'} = 0
+\end{equation}
+We can use the parameter vector $\mathbf{\theta}$ to parametrize the logistic function (I'm too lazy to write the tilde everywhere):
+\begin{equation}
+    g(\mathbf{\theta}^T \mathbf{x}) = \frac{1}{1 + e^{-\mathbf{\theta}^T \mathbf{x}}}
+\end{equation}
+The posterior probabilities are now given by:
+\begin{align}
+    p(y=0|\mathbf{x}) &= g(\mathbf{\theta}^T \mathbf{x})\\
+    p(y=1|\mathbf{x}) &= 1 - g(\mathbf{\theta}^T \mathbf{x})
+\end{align}
+We have to eastimate the parameters from a set $S$ of $m$ training samples:
+\begin{equation}
+    S = \{(\mathbf{x}_1, y_1), (\mathbf{x}_2, y_2), \ldots, (\mathbf{x}_N, y_N)\}
+\end{equation}
+Before we start with the estimation, lets reqwrite the psoteriors using a bernoulli distribution:
+\begin{equation}
+    p(y|\mathbf{x}) = (g(\mathbf{\theta}^T \mathbf{x}))^{1-y} (1 - g(\mathbf{\theta}^T \mathbf{x}))^{y}
+\end{equation}
+Now we can start. We use maximum likelihood estimation (MLE) and assume the training samples are mutually independent.
+We compute the log-likelihood function:
+\begin{align*}
+    \mathcal{L}(\mathbf{\theta}) &= \log \prod_{i=1}^{m} p(y_i|\mathbf{x}_i) \\
+    &= \sum_{i=1}^{m} \left( g\left(\mathbf{\theta}^T \mathbf{x}_i\right)^{y_i} (1 - g\left(\mathbf{\theta}^T \mathbf{x}_i\right))^{1-y_i} \right) \\
+    &= \sum_{i=1}^{m} \left( y_i \log g\left(\mathbf{\theta}^T \mathbf{x}_i\right) + (1 - y_i) \log \left(1 - g\left(\mathbf{\theta}^T \mathbf{x}_i\right)\right) \right) \\
+    &= \sum_{i=1}^{m} \left( y_i \mathbf{\theta}^T \mathbf{x}_i + \log \left(1 - g\left(\mathbf{\theta}^T \mathbf{x}_i\right)\right)\right)
+\end{align*}
+Our goal is to maximize the log-likelihood function or minimize the negative log-likelihood function:
+\begin{equation}
+    \mathbf{\theta}^* = \arg\max_{\mathbf{\theta}} \mathcal{L}(\mathbf{\theta}) = \arg\min_{\mathbf{\theta}} -\mathcal{L}(\mathbf{\theta})
+\end{equation}
+We can do this using Newton's method \ref{sec:Newtons_method} or gradient descent \ref{sec:gradient_descent}.

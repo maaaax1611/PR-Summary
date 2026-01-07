@@ -60,6 +60,7 @@ The goal is to find a step size $t$ that, that puts us below the red line, ensur
 \end{summarybox}
 
 \subsubsection{Gradient Descent}
+\label{sec:gradient_descent}
 The most natural choice for the search direction is the direction of steepest descent, which is the negative gradient.
 \begin{equation}
     \Delta \vec{x}^{(k)} = - \nabla f(\vec{x}^{(k)})
@@ -125,6 +126,7 @@ Ideally, we want the direction that gives the largest decrease in the linear app
 
 
 \subsubsection{Newton's Method}
+\label{sec:Newtons_method}
 Newton's method finds the search direction by approximating the function $f(\vec{x})$ locally using a \textbf{second-order Taylor polynomial}:
 \begin{equation}
     f(\vec{x} + \Delta\vec{x}) \approx f(\vec{x}) + \nabla f(\vec{x})^T \Delta\vec{x} + \frac{1}{2} \Delta\vec{x}^T \nabla^2 f(\vec{x}) \Delta\vec{x}
