@@ -1,1 +1,78 @@
 \section{Naive Bayes}
+The Naive Bayes (Idiots Bayes) bayes is a simple probabilistic classifier based on applying Bayes' theorem with strong (naive) independence assumptions between the features. 
+It is particularly suited for high-dimensional data.\\
+The indepence assumption implies:
+\begin{equation}
+    P(\mathbf{x}|y) = \prod_{i=1}^{d} P(x_i|y)
+\end{equation}
+where \( \mathbf{x} = (x_1, x_2, \ldots, x_d) \) is the feature vector and \( y \) is the class label.\\
+Using Bayes' theorem, we can formulate the decision rule as:
+\begin{equation}
+\begin{split}
+    y^* &= \arg\max_{y} p(y|\mathbf{x}) \\
+        &= \arg\max_{y} p(y) p(\mathbf{x}|y) \\
+        &= \arg\max_{y} p(y) \prod_{i=1}^{d} p(x_i|y)
+\end{split}
+\end{equation}
+\noindent \textbf{Decision Boundary:}
+\begin{itemize}
+    \item Quadratic, if the classes have different covariance matrices (i.e., \( \Sigma_k \neq \Sigma_j \) for some \( k \neq j \))
+    \item Linear, if all classes share the same covariance matrix (i.e., \( \Sigma_k = \Sigma \) for all \( k \))
+\end{itemize}
+{\color{red}Note:} If all classes share the same covariance matrix and the covariance matrix is the identity matrix $\Sigma = I$, we obtain the \textbf{Nearest Neighbor Classifier}.\\
+
+\subsection{Statistical Dependency of limited order}
+If we do not want to assume full independence between features, but want to keep the number of parameters manageable, we can assume statistical dependency of limited order.
+This means that each feature \( x_i \) depends only on a limited number of other features, say \( k \) features. This leads to the following formulation:
+\begin{equation}
+    p(\mathbf{x}|y) = \prod_{i=1}^{d} p(x_i |y , x_{i_1}, x_{i_2}, \ldots, x_{i_k})
+\end{equation}
+where \( x_{i_1}, x_{i_2}, \ldots, x_{i_k} \) are the \( k \) features that \( x_i \) depends on.\\
+
+\textbf{First order dependency (i.e., \( k=1 \))}:\\
+\begin{equation}
+    p(\mathbf{x}|y) = p(x_1|y) \cdot p(x_2|y, x_1) \cdot p(x_3|y, x_2) \cdots p(x_d|y, x_{d-1})
+\end{equation}
+\noindent So each feature depends only on the previous feature in addition to the class label \( y \).\\
+In this case the covariance matrix would be a \textbf{band matrix} with bandwidth 1:
+\begin{equation}
+    \Sigma = \begin{pmatrix}
+    \sigma_{11} & \sigma_{12} & 0 & \cdots & 0 \\
+    \sigma_{21} & \sigma_{22} & \sigma_{23} & \cdots & 0 \\
+    0 & \sigma_{32} & \sigma_{33} & \cdots & 0 \\
+    \vdots & \vdots & \vdots & \ddots & \vdots \\
+    0 & 0 & 0 & \cdots & \sigma_{dd}
+    \end{pmatrix}
+\end{equation}
+
+\textbf{Second order dependency (i.e., \( k=2 \))}:\\
+\begin{equation}
+    p(\mathbf{x}|y) = p(x_1|y) \cdot p(x_2|y, x_1) \cdot p(x_3|y, x_1, x_2) \cdots p(x_d|y, x_{d-2}, x_{d-1})
+\end{equation}
+\noindent In this case the covariance matrix would be a \textbf{band matrix} with bandwidth 2:
+\begin{equation}
+    \Sigma = \begin{pmatrix}
+    \sigma_{11} & \sigma_{12} & \sigma_{13} & 0 & \cdots & 0 \\
+    \sigma_{21} & \sigma_{22} & \sigma_{23} & \sigma_{24} & \cdots & 0 \\
+    \sigma_{31} & \sigma_{32} & \sigma_{33} & \sigma_{34} & \cdots & 0 \\
+    0 & \sigma_{42} & \sigma_{43} & \sigma_{44} & \cdots & 0 \\
+    \vdots & \vdots & \vdots & \vdots & \ddots & \vdots \\
+    0 & 0 & 0 & 0 & \cdots & \sigma_{dd}
+    \end{pmatrix}
+\end{equation}
+\noindent Here, each feature depends on the two previous features in addition to the class label \( y \).\\
+
+\textbf{Parameter tying: }\\
+Here we assume that the covariance for each feature is the same across all classes, i.e., \( \sigma_{i|y=k} = \sigma_i \) for all classes \( k \).
+We can still assume some dependency among the features, e.g., first order dependency.
+In this case the covariance matrix would be a diagonal matrix with the same entries for each class:
+\begin{equation}
+    \Sigma = \begin{pmatrix}
+    \sigma_{1} & \sigma_{12} & 0 & \cdots & 0 \\
+    \sigma_{21} & \sigma_{2} & \sigma_{23} & \cdots & 0 \\
+    0 & \sigma_{32} & \sigma_{3} & \cdots & 0 \\
+    \vdots & \vdots & \vdots & \ddots & \vdots \\
+    0 & 0 & 0 & \cdots & \sigma_{d}
+    \end{pmatrix}
+\end{equation}
+\newpage
