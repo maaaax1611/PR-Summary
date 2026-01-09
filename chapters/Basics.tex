@@ -122,6 +122,36 @@ where $\mathbf{x} \in \mathbb{R}^d$ is the feature vector.\\
     \item The probability at a single point is 0: $ \mathcal{N}(\mathbf{x}_0; \boldsymbol{\mu}, \boldsymbol{\Sigma}) = 0 $
 \end{itemize}
 
+\subsubsection{Maximum Likelihood Estimation (MLE)}
+\label{sec:MLE}
+\begin{itemize}
+    \item Assume mutually independent and identically distributed (i.i.d.) samples $\{\mathbf{x}^1, \mathbf{x}^2, \dots, \mathbf{x}^N\}$
+    \item The observations $x$ are kept fixed
+    \item We optimize the log-likelihood function w.r.t. the parameters $\boldsymbol{\theta}$ of the distribution $p(\mathbf{x}|\boldsymbol{\theta})$
+\end{itemize}
+\begin{equation}
+    \begin{split}
+        \hat{\boldsymbol{\theta}} &= \arg\max_{\boldsymbol{\theta}} p(\mathbf{x} | \boldsymbol{\theta}) \\
+        &= \arg\max_{\boldsymbol{\theta}} \prod_{n=1}^{N} p(\mathbf{x}^n | \boldsymbol{\theta}) \\
+        &= \arg\max_{\boldsymbol{\theta}} \sum_{n=1}^{N} \log p(\mathbf{x}^n | \boldsymbol{\theta}) \\
+    \end{split}
+\end{equation}
+
+\subsubsection{Maximum A-posteriori (MAP)}
+\label{sec:MAP}
+\begin{itemize}
+    \item The probability density function of the parameters $p(\boldsymbol{\theta})$ is known (prior knowledge)
+    \item We optimize the posterior probability of the parameters given the data
+\end{itemize}
+\begin{equation}
+\begin{split}
+    \hat{\theta} &= \underset{\theta}{\mathrm{argmax}} \; p(\theta | x) \\
+    &= \underset{\theta}{\mathrm{argmax}} \; \frac{p(\theta)p(x|\theta)}{\sum_\theta p(\theta)p(x|\theta)} \\
+    &= \underset{\theta}{\mathrm{argmax}} \; \log p(\theta) + \log p(x|\theta)
+\end{split}
+\end{equation}
+
+
 \subsection{Performance Evaluation}
 
 \subsubsection*{1. General Classification ($K$ Classes)}
