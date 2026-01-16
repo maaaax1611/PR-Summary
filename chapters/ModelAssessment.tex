@@ -1,4 +1,60 @@
 \section{Model Assessment}
+\subsection{No Free Lunch}
+The No Free Lunch theorem stats, that there is no universally best model for all possible problems.
+How well a model performs depends on the specific characteristics of the data and the underlying distribution (prior knowledge).
 
+\subsection{Bias and Variance}
+When assessing model performance, we often decompose the expected prediction error into three components: bias, variance, and irreducible error.
+\begin{itemize}
+    \item \textbf{Bias:} The error due to overly simplistic assumptions in the learning algorithm. High bias can cause an algorithm to miss the relevant relations between features and target outputs (underfitting).
+    \item \textbf{Variance:} The error due to excessive sensitivity to small fluctuations in the training set. High variance can cause an algorithm to model the random noise in the training data (overfitting).
+\end{itemize}
+In case of a regression problem the mean-sqare deviation can be decomposed as follows:
+$$E\{(g(x) - F(x))^2\} = (\text{Bias})^2 + \text{Variance}$$
+where \( g(x) \) is the predicted value and \( F(x) \) is the true function.
+This decomposition shows the bias variance trade-off: as we make our model more complex, we typically decrease bias but increase variance, and vice versa.
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\textwidth]{Bias_Variance_Regression.png}
+    \caption{Illustration of the Bias-Variance Trade-off for Regression Problems}
+    \label{fig:Bias_Variance_Tradeoff}
+\end{figure}
+\noindent In this figure the lenghth of the arrows represent the magnitude of the bias and the width of the curve represent the variance.
+For higher complexity models the bias decreases (shorter arrows) but the variance increases (wider curve).\\
+For classification problems a similar trade-off exists. It is visualized in terms of decision boundaries:
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=\textwidth]{Bias_Variance_Classification.png}
+    \caption{Illustration of the Bias-Variance Trade-off for Classification Problems}
+    \label{fig:Bias_Variance_Tradeoff_Classification}
+\end{figure}
+The more complex the model, the more it can adapt to the training data (flexible decision boundaries), reducing bias but increasing variance.
+In this case the boundary distribution is more spread out and therefore the error histogram is wider.\\
+The simpler the model, the less it can adapt to the training data (rigid decision boundaries), increaasing bias but reducing variance.
+In case of simpler classifiers the boundary distribution is more concentrated and therefore the error histogram is narrower.
+\subsection{Resampling}
+Resampling methods are techniques used to assess the performance of a model by repeatedly drawing samples from the training data and evaluating the model on these samples.\\
+
+\textbf{Jackknife:}\\
+The jackknife is a resampling method that involves removing one observation at a time from the dataset and re-fitting the model on the remaining observations.
+This process is repeated for each observation in the dataset, and the variability of the model estimates is assessed based on the results from these leave-one-out samples.
+
+\textbf{Bootstrap:}\\
+The bootstrap is a resampling method that involves sampling with replacement from the original dataset to create new datasets of the same size.
+This process is repeated many times, and the variability of the model estimates is assessed based on the results from these bootstrap samples.
+
+\subsection{Cross Validation}
+In Cross Validation (CV) the dataset is divided into two disjoint parts.
+The model is trained on the \textbf{training set} and evaluated on the \textbf{validation/test set}.
+Afterwards you swap the roles of the two sets and repeat the process.
+This gives a better estimate of the model's performance on unseen data.
+
+\textbf{m-fold Cross Validation:}\\
+\begin{itemize}
+    \item Split dataset into \( m \) equally sized folds of size \( N/m \)
+    \item 1 set is used for validation the remaining \( m-1 \) sets are used for training
+    \item Each set is used exactly once for testing
+    \item Average the performance over all \( m \) trials to get an overall estimate
+\end{itemize}
 
 \newpage
