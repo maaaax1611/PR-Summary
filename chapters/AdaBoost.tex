@@ -1,0 +1,60 @@
+\section{AdaBoost}
+The core idea of boosting algorithms is to combine the output of many weak classifiers to produce a powerful ensemble. 
+The final prediction is based on a weighted majority vote of the individual classifiers.
+\begin{equation}
+    \label{prediction_AdaBoost}
+    G(x) = \text{sign}\left(\sum_{m=1}^{M} \alpha_m G_m(x)\right)
+\end{equation}
+where \( G_m(x) \) is the prediction of the \( m \)-th weak classifier and \( \alpha_m \) is its weight in the final decision.
+The boosting procedure is illustrated in the following figure:
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.5\textwidth]{Boosting.png}
+    \caption{Illustration of the AdaBoost procedure}
+    \label{fig:AdaBoost_Procedure}
+\end{figure}
+\noindent During the boosting procedure the following key things happen:
+\begin{itemize}
+    \item In each boosting step, we apply weights $w_1, w_2, \ldots, w_N$ to the training samples. Initially, all weights are equal: $w_i = \frac{1}{N}$.
+    \item The first classifier in the sequence is trained on the original training data.
+    \item For $m \geq 2$ the weights are individually adjusted
+    \begin{itemize}
+        \item At step $m$, the weights of misclassified samples are increased, while the weights of correctly classified samples are decreased.
+    \end{itemize}
+    \item A new weak classifier $G_m(x)$ is trained on the weighted training data
+\end{itemize}
+\noindent \textbf{Algorithm:}\\
+\begin{algorithm}
+\caption{AdaBoost Algorithm}
+\begin{algorithmic}[1]
+    \State \textbf{Initialize weights:} $w_i \gets 1/N, \; i = 1, \dots, N$
+    \For{$m = 1$ to $M$}
+        \State Fit classifier $G_m(x)$ to training data using $\mathbf{w}$
+        \State Compute classification error:
+        \begin{equation*}
+            \text{err}_m = \frac{\sum_{i=1}^N w_i I(y_i \neq G_m(x_i))}{\sum_{i=1}^N w_i}
+        \end{equation*}
+        \State Compute classifier weights:
+        \begin{equation*}
+            \alpha_m = \log \left( \frac{1-\text{err}_m}{\text{err}_m} \right)
+        \end{equation*}
+        \State Compute new sample weights:
+        \begin{equation*}
+            w_i \gets w_i \exp[\alpha_m I(y_i \neq G_m(x_i))], \; i = 1, \dots, N
+        \end{equation*}
+    \EndFor
+    \State \textbf{Output:} $G(x) = \text{sign} \left( \sum_{m=1}^M \alpha_m G_m(x) \right)$
+\end{algorithmic}
+\end{algorithm}\\
+\noindent \textbf{Notes:}
+\begin{itemize}
+    \item The indicator function \( I(y_i \neq G_m(x_i)) \) is 1 if the prediction is incorrect and 0 otherwise.
+    \item The weights \( \alpha_m \) reflect the importance of each weak classifier in the final ensemble.
+\end{itemize}
+\noindent \textbf{Illustration of AdaBoost:}
+\begin{figure}
+    \centering
+    \includegraphics[width=\textwidth]{AdaBoost_training.png}
+    \caption{Example of AdaBoost with decision stumps as weak classifiers}
+    \label{fig:AdaBoost_Example}
+\end{figure}
